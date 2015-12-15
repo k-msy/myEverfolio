@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html">
+    <h:head>
+        <title>ユーザー登録</title>
+    </h:head>
+    <h:body>
+        <h2>ユーザーの新規登録</h2>
+        <h:form>
+            なまえ<h:inputText id="name" value="#{registerBb.name}" />
+            <br />
+            ID：<h:inputText id="id" value="#{registerBb.id}" />
+            <br />
+            パスワード：<h:inputSecret id="pw" value="#{registerBb.pw}" />
+            <br />
+            <h:commandButton value="新規登録" action="#{registerBb.create()}" />
+            <h:commandButton value="クリア" action="#{registerBb.clear()}"/>
+
+            <h:link outcome="/login.xhtml?faces-redirect=true">ログイン画面へ戻る</h:link>
+
+        </h:form>
+    </h:body>
+</html>
+
