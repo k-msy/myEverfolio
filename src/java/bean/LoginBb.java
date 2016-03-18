@@ -20,7 +20,6 @@ public class LoginBb extends SuperBb implements Serializable {
 
     public String login() {
         HttpServletRequest request = getRequest();
-        HttpServletResponse response = getResponse();
         try {
             request.login(id, pw);
         } catch (ServletException ex) {

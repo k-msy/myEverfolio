@@ -12,6 +12,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.SortedMap;
 import java.util.regex.PatternSyntaxException;
+import javax.annotation.Resource;
+import javax.enterprise.concurrent.ManagedExecutorService;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -20,7 +22,7 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author bpg0129
  */
-public class Twitter extends SuperOauth {
+public class Twitter extends SuperOauth implements Runnable {
 
     // OAuthにおいて利用する変数宣言
     private static final String CONSUMER_KEY = "ZrWPQbG5ml4pRRRUgrpGJcvgK";
@@ -42,6 +44,9 @@ public class Twitter extends SuperOauth {
 
     SortedMap<String, String> paramsMap;
     private String authHeader;
+    
+    @Resource
+    private ManagedExecutorService executeService = null;
 
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
@@ -68,6 +73,17 @@ public class Twitter extends SuperOauth {
 
     }
 
+    
+    public void asyncVerify(){
+        
+    }
+    
+    
+    
+    
+    
+    
+    
     // APIにアクセス
     public void verify(HttpServletRequest request, HttpServletResponse response) {
 
@@ -83,8 +99,11 @@ public class Twitter extends SuperOauth {
         OAUTH_TOKEN_SECRET = split[1];
         //String url = AUTHORIZE_URL+"?oauth_token="+OAUTH_TOKEN;
 
+  // ***** ここで、リダイレクトを受け取ってメイン（というか、何か別のスレッド）に返すスレッドを生成しておけばOK？ *****
+        
+        
         try {
-            super.sendRedirect(request, response, AUTHORIZE_URL, OAUTH_TOKEN);
+            super.sendRedirect(response, AUTHORIZE_URL, OAUTH_TOKEN);
         } catch (IOException ex) {
             System.out.println("IO例外");
         }
@@ -211,6 +230,11 @@ public class Twitter extends SuperOauth {
             ex.printStackTrace();
         }
         //return "";
+    }
+
+    @Override
+    public void run() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
 }

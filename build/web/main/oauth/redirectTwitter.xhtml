@@ -5,7 +5,12 @@
     <h:head>
         <title>myEverfolio | Twitter</title>
     </h:head>
-    <h:body>
+    <script>
+        function redirectTop(){
+            window.location.href = '../top.xhtml?faces-redirect=true'; // 通常の遷移
+        }  
+    </script>
+    <h:body onload="redirectTop()">
         <h2>TwitterのリダイレクトHTML</h2>
 
     </h:body>

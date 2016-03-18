@@ -5,24 +5,25 @@
  */
 package bean;
 
-import java.util.concurrent.Future;
 import javax.annotation.Resource;
 import javax.ejb.Stateless;
 import javax.enterprise.concurrent.ManagedExecutorService;
+import oauth.Twitter;
 
 /**
  *
  * @author bpg0129
  */
 @Stateless
-public class MyManagedExecutorService {
+public class AsyncExecute {
+
     @Resource(name="concurrent/DefaultManagedExecutorService")
-    ManagedExecutorService managedExecsvc;
-    
-    public void execExecutorService(){
-        MyRunnableTask task = new MyRunnableTask();
-        managedExecsvc.submit(task);
-        MyCallableTask singleTask = new MyCallableTask("Foo Bar");
-        Future<String> singleFuture = managedExecsvc.submit(singleTask);
+    private ManagedExecutorService executeService;
+
+    public void start() {
+        //AsyncTask task = new AsyncTask();
+        System.out.println("Before execute.");
+        executeService.execute(new Twitter());
+        System.out.println("After execute.");
     }
 }

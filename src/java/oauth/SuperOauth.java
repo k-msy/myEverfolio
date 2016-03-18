@@ -17,6 +17,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -28,17 +29,29 @@ import org.apache.commons.lang3.RandomStringUtils;
  * @author bpg0129
  */
 public class SuperOauth extends HttpServlet {
+
+    public ExternalContext getServlet() {
+        return FacesContext.getCurrentInstance().getExternalContext();
+    }
     
-    public void responseComplete(){
+    public HttpServletRequest getRequest() {
+        return (HttpServletRequest) getServlet().getRequest();
+    }
+    
+    public HttpServletResponse getResponse() {
+        return (HttpServletResponse) getServlet().getResponse();
+    }
+
+    public void responseComplete() {
         FacesContext.getCurrentInstance().responseComplete();
     }
 
-    public void sendRedirect(HttpServletRequest request, HttpServletResponse response, String url, String token) throws IOException{
+    public void sendRedirect(HttpServletResponse response, String url, String token) throws IOException {
         response.setContentType("text/html; charset=UTF-8");
         //PrintWriter out = response.getWriter();
         //log("アクセスされました");
         String redirectUrl = url + "?oauth_token=" + token;
-        System.out.println("redirectUrl：" + redirectUrl);
+        //System.out.println("redirectUrl：" + redirectUrl);
         response.sendRedirect(redirectUrl);
     }
 
@@ -88,17 +101,18 @@ public class SuperOauth extends HttpServlet {
         // 1. consumer_secretをURLエンコード 
         // 2. oauth_token_secretをURLエンコード
         // 3. 1と2を"&"で連結
-        System.out.println("sigKey: " + URLEncode(consumer_secret) + "&" + URLEncode(token_secret));
+        //System.out.println("sigKey: " + URLEncode(consumer_secret) + "&" + URLEncode(token_secret));
         return URLEncode(consumer_secret) + "&" + URLEncode(token_secret);
     }
 
     /**
      * signatureDataを作成する
+     *
      * @param consumer_key
      * @param URL
      * @param paramsMap
      * @param method
-     * @return 
+     * @return
      */
     protected String makeSigData(String consumer_key, String URL, SortedMap<String, String> paramsMap, String method) {
 
@@ -115,11 +129,10 @@ public class SuperOauth extends HttpServlet {
 
         // 3. リクエストメソッド
         //String method = "GET";
-
         // 4. リクエストURLをエンコード
         String requestURL = URLEncode(URL);
 
-        System.out.println("base string: " + method + "&" + requestURL + "&" + params);
+        //System.out.println("base string: " + method + "&" + requestURL + "&" + params);
         return method + "&" + requestURL + "&" + params;
     }
 

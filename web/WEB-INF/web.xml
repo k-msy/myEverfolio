@@ -14,7 +14,7 @@
     </servlet-mapping>
     <servlet>
         <servlet-name>Withings</servlet-name>
-        <servlet-class>oauth.Withings</servlet-class>
+        <servlet-class>callback.Withings</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>Withings</servlet-name>

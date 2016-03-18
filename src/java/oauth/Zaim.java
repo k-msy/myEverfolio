@@ -66,11 +66,6 @@ public class Zaim extends SuperOauth {
             OAUTH_TOKEN_SECRET = split[1];
             //String url = AUTHORIZE_URL+"?oauth_token="+OAUTH_TOKEN;
 
-            try {
-                super.sendRedirect(request, response, AUTHORIZE_URL, OAUTH_TOKEN);
-            } catch (IOException ex) {
-                System.out.println("IO例外");
-            }
         }else{
             Date date = new Date();
             System.out.println("zaimリクエストトークン取得失敗" + new Date().toString());
