@@ -444,11 +444,12 @@ public class Withings extends SuperOauth {
             System.out.println("今日のデータが同期されてないっぽいです");
         } else {
             //2日分歩数データが取れた場合
-            int today=0;
-            int yesterday=0;
-            stepsMap.put("yesterday", String.valueOf(stepList.get(0)));
-            stepsMap.put("today", String.valueOf(stepList.get(1)));
-            stepsMap.put("difference", String.valueOf(stepList.get(today - yesterday)));
+            int yesterday=stepList.get(0);
+            int today=stepList.get(1);
+            stepsMap.put("yesterday", String.valueOf(yesterday));
+            stepsMap.put("today", String.valueOf(today));
+            stepsMap.put("difference", String.valueOf(today - yesterday));
+            System.out.println("today - yesterday=" + String.valueOf(today - yesterday));
         }  
         return stepsMap;
     }

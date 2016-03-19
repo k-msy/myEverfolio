@@ -20,6 +20,8 @@
             <h:commandButton value="Twitter認証" action="#{topBb.verifyTwitter()}" />
             <h:commandButton value="Zaim認証" action="#{topBb.verifyZaim()}" />
         </h:form>
+        <p>今日の歩数：#{wiEnti.today} steps</p>
+        <p>昨日との差：#{wiEnti.difference} steps</p>
         <!--<p:chart type="line" model="#{chartView.lineModel1}" style="height:300px;"/>-->
     </h:body>
 </html>

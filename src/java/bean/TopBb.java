@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ejb.EJB;
-import javax.enterprise.context.SessionScoped;
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -28,7 +28,7 @@ import oauth.Zaim;
  * @author bpg0129
  */
 @Named
-@SessionScoped
+@RequestScoped
 public class TopBb extends SuperBb implements Serializable {
 
     @EJB
@@ -98,6 +98,9 @@ public class TopBb extends SuperBb implements Serializable {
                 String rawDataForSteps = wi.getRawDataForSteps();
                 Map<String, String> stepsMap = new HashMap<>();
                 stepsMap = wi.adjustSteps(rawDataForSteps);
+                wiEnti.setYesterday(stepsMap.get("yesterday"));
+                wiEnti.setToday(stepsMap.get("today"));
+                wiEnti.setDifference(stepsMap.get("difference"));
                 //System.out.println(wi.getRawDataForSteps());
             } catch (IOException ex) {
                 Logger.getLogger(TopBb.class.getName()).log(Level.SEVERE, null, ex);

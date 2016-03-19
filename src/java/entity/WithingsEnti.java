@@ -6,13 +6,16 @@
 package entity;
 
 import javax.enterprise.context.RequestScoped;
+import javax.inject.Named;
 
 /**
  *
  * @author bpg0129
  */
+@Named("wiEnti")
 @RequestScoped
 public class WithingsEnti {
+
     private String date = "";
     private String timezone = "";
     private int steps = 0;
@@ -25,18 +28,11 @@ public class WithingsEnti {
     private int intense = 0;
     private String status = "";
     private String body = "";
-    
-    private int difference = 0;
 
-    public int getDifference() {
-        return difference;
-    }
+    private String yesterday = "";
+    private String today = "";
+    private String difference = "";
 
-    public void setDifference(int difference) {
-        this.difference = difference;
-    }
-
-    
     public String getDate() {
         return date;
     }
@@ -132,7 +128,31 @@ public class WithingsEnti {
     public void setBody(String body) {
         this.body = body;
     }
-    
-    
-    
+
+    public String getYesterday() {
+        return yesterday;
+    }
+
+    public void setYesterday(String yesterday) {
+        this.yesterday = yesterday;
+    }
+
+    public String getToday() {
+        return today;
+    }
+
+    public void setToday(String today) {
+        this.today = today;
+    }
+
+    public String getDifference() {
+        return difference;
+    }
+
+    public void setDifference(String difference) {
+        this.difference = difference;
+    }
+
+
+
 }
