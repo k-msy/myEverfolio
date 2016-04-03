@@ -20,9 +20,20 @@
             <h:commandButton value="Twitter認証" action="#{topBb.verifyTwitter()}" />
             <h:commandButton value="Zaim認証" action="#{topBb.verifyZaim()}" />
         </h:form>
-        <p>今日の歩数：#{wiEnti.today} steps</p>
-        <p>昨日との差：#{wiEnti.difference} steps</p>
-        <!--<p:chart type="line" model="#{chartView.lineModel1}" style="height:300px;"/>-->
+        <div id="toggl">
+            <p>今日の勉強時間：#{togEnti.totalDurations}</p>
+        </div>
+        <div id="Withings">
+            <p>今日の歩数：#{wiEnti.today} steps</p>
+            <p>昨日との差：#{wiEnti.difference} steps</p>
+            <!--<p:chart type="line" model="#{chartView.lineModel1}" style="height:300px;"/>-->
+        </div>
+        <div id="evernote">
+            
+        </div>
+        <div id="Zaim">
+            
+        </div>
     </h:body>
 </html>
 

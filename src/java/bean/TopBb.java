@@ -5,6 +5,7 @@
  */
 package bean;
 
+import entity.TogglEnti;
 import entity.WithingsEnti;
 import java.io.IOException;
 import java.io.Serializable;
@@ -19,6 +20,7 @@ import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import oauth.Toggl;
 import oauth.Twitter;
 import oauth.Withings;
 import oauth.Zaim;
@@ -33,11 +35,17 @@ public class TopBb extends SuperBb implements Serializable {
 
     @EJB
     private AsyncExecute asyncExecute;
-    
-    @Inject
-    WithingsEnti wiEnti;
+
     @Inject
     Withings wi;
+    @Inject
+    WithingsEnti wiEnti;
+    
+    @Inject
+    Toggl tgl;
+    @Inject
+    TogglEnti togEnti;
+
 
     public TopBb() {
         wi = new Withings();
@@ -83,15 +91,17 @@ public class TopBb extends SuperBb implements Serializable {
     public String checkTokens() {
         HttpServletRequest request = getRequest();
         HttpSession session = request.getSession(true);
-        if(session.getAttribute("request_token") == null){
+/*
+        // Withings
+        if (session.getAttribute("request_token") == null) {
             wi.verify();
-        }else if(session.getAttribute("access_token") == null){
+        } else if (session.getAttribute("access_token") == null) {
             try {
                 wi.getAccessToken();
             } catch (IOException ex) {
                 Logger.getLogger(TopBb.class.getName()).log(Level.SEVERE, null, ex);
             }
-        }else{
+        } else {
             System.out.println("歩数・体重データを取得する準備ができてます");
             try {
                 // 歩数・体重データを取得する準備ができてます。
@@ -105,8 +115,19 @@ public class TopBb extends SuperBb implements Serializable {
             } catch (IOException ex) {
                 Logger.getLogger(TopBb.class.getName()).log(Level.SEVERE, null, ex);
             }
-            
         }
+*/        
+        // Toggl
+        Map<String, Map<String, String>> timeEntryMap;
+        try{
+            timeEntryMap = tgl.getTodayDuration();
+            long totalDurations = Long.valueOf(timeEntryMap.get("totalDurations").get("totalDurations"));
+            togEnti.setTotalDurations(tgl.convertHms(totalDurations));
+        }catch(IOException e){
+            System.out.println("Toggl失敗");
+            e.printStackTrace();
+        }
+        
 
         return "";
     }
