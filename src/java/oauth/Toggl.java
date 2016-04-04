@@ -14,6 +14,7 @@ import ch.simas.jtoggl.Workspace;
 import java.io.IOException;
 import java.sql.Date;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,14 +37,12 @@ public class Toggl extends SuperOauth {
     private static final String api_token = "101872f22ff214f3902d2e9ae565264c";
     private static final String togglMe = "https://www.toggl.com/api/v8/me";
     //private static final String method = "GET";
-    
-    
 
     public Toggl() {
 
     }
 
-    public Map<String, Map<String, String>> getTodayDuration() throws IOException {
+    public ArrayList<String[]> getTodayDuration() throws IOException {
         /*
          String togglApiToken = System.getenv("TOGGL_API_TOKEN");
          if (togglApiToken == null) {
@@ -59,53 +58,63 @@ public class Toggl extends SuperOauth {
         List<Workspace> workspaces = jToggl.getWorkspaces();
         workspace = workspaces.get(0);
 
-        //LocalDate fromDate = LocalDate.now().minusDays(1);
-        LocalDate fromDate = LocalDate.now();
-        LocalDate toDate = LocalDate.now().plusDays(1);
+        LocalDate fromDate = LocalDate.now().minusDays(1);
+        LocalDate toDate = LocalDate.now();
+        //LocalDate toDate = LocalDate.now().plusDays(1);
 
         List<TimeEntry> timeEntryList = jToggl.getTimeEntries(Date.valueOf(fromDate), Date.valueOf(toDate));
-        
+
         //pidごとのtimeEntryにまとめる
-        Map<String, Map<String, String>> timeEntryMap = new HashMap<>();
-        Map<String, String> projectMap = null;
-        long durations = 0;
+        String[] project = new String[3];
+        ArrayList<String[]> projectList = new ArrayList<>();
+
         for (TimeEntry timeEntry : timeEntryList) {
             String pid = String.valueOf(timeEntry.getPid());
-            if (timeEntryMap.size() == 0) {
-                projectMap = new HashMap<>();
-                projectMap.put("pid", pid);
-                projectMap.put("description", timeEntry.getDescription());
-                projectMap.put("duration", String.valueOf(timeEntry.getDuration()));
-                timeEntryMap.put(pid, projectMap);
-            } else if (timeEntryMap.get(pid).containsKey("pid")) {
-                Long duration = Long.valueOf(timeEntryMap.get(pid).get("duration"));
-                if (timeEntry.getDuration() > 0) {
-                    duration = duration + timeEntry.getDuration();
-                    if (projectMap != null) {
-                        projectMap.put("duration", String.valueOf(duration));
-                        timeEntryMap.put(pid, projectMap);
-                    } else {
-                        System.out.println("projectMapはNULL!!");
+            if (projectList.isEmpty()) {
+                if (0 < timeEntry.getDuration()) {
+                    project[0] = pid;
+                    project[1] = timeEntry.getDescription();
+                    project[2] = String.valueOf(timeEntry.getDuration());
+                    projectList.add(project);
+                }
+            } else {
+                int samePidIndex;
+                samePidIndex = getSamePidIndex(projectList, pid);
+                if (0 <= samePidIndex) {
+                    //同じpidを持つprojectが存在した時
+                    if (0 < timeEntry.getDuration()) {
+                        String[] tmpProject = projectList.get(samePidIndex);
+                        tmpProject[2] = String.valueOf(Long.valueOf(tmpProject[2]) + timeEntry.getDuration());
+                        projectList.set(samePidIndex, tmpProject);
+                    }
+                } else {
+                    if (0 < timeEntry.getDuration()) {
+                        project[0] = pid;
+                        project[1] = timeEntry.getDescription();
+                        project[2] = String.valueOf(timeEntry.getDuration());
+                        projectList.add(project);
                     }
                 }
-
-            } else {
-                projectMap = new HashMap<>();
-                projectMap.put("pid", pid);
-                projectMap.put("description", timeEntry.getDescription());
-                projectMap.put("duration", String.valueOf(timeEntry.getDuration()));
-                timeEntryMap.put(pid, projectMap);
             }
         }
-        long totalDurations = 0;
-        for (Map.Entry<String, Map<String, String>> entry : timeEntryMap.entrySet()) {
-            totalDurations = totalDurations + Long.valueOf(entry.getValue().get("duration"));
-        }
-        Map<String, String> totalDurationMap = new HashMap<>();
-        totalDurationMap.put("totalDurations", String.valueOf(totalDurations));
-        timeEntryMap.put("totalDurations", totalDurationMap);
+        return projectList;
+    }
 
-        return timeEntryMap;
+    private int getSamePidIndex(ArrayList<String[]> projectList, String pid) {
+        for (int index = 0; index < projectList.size(); index++) {
+            if (pid.equals(projectList.get(index)[0])) {
+                return index;
+            }
+        }
+        return -1;
+    }
+
+    public long getTotalDurations(ArrayList<String[]> projectList) {
+        long totalDurations = 0;
+        for (String[] project : projectList) {
+            totalDurations = totalDurations + Long.valueOf(project[2]);
+        }
+        return totalDurations;
     }
 
     public String convertHms(long durations) {

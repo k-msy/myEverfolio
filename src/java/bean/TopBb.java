@@ -9,6 +9,7 @@ import entity.TogglEnti;
 import entity.WithingsEnti;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -118,10 +119,10 @@ public class TopBb extends SuperBb implements Serializable {
         }
 */        
         // Toggl
-        Map<String, Map<String, String>> timeEntryMap;
         try{
-            timeEntryMap = tgl.getTodayDuration();
-            long totalDurations = Long.valueOf(timeEntryMap.get("totalDurations").get("totalDurations"));
+            ArrayList<String[]> projectList = tgl.getTodayDuration();
+            togEnti.setProjectList(projectList);
+            long totalDurations = tgl.getTotalDurations(projectList);
             togEnti.setTotalDurations(tgl.convertHms(totalDurations));
         }catch(IOException e){
             System.out.println("Toggl失敗");

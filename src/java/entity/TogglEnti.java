@@ -5,6 +5,8 @@
  */
 package entity;
 
+import java.util.ArrayList;
+import java.util.Map;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Named;
 
@@ -17,6 +19,8 @@ import javax.inject.Named;
 public class TogglEnti {
 
     private String totalDurations;
+    
+    ArrayList<String[]> projectList;
 
     public String getTotalDurations() {
         return totalDurations;
@@ -25,7 +29,13 @@ public class TogglEnti {
     public void setTotalDurations(String totalDurations) {
         this.totalDurations = totalDurations;
     }
-    
-    
+
+    public ArrayList<String[]> getProjectList() {
+        return projectList;
+    }
+
+    public void setProjectList(ArrayList<String[]> projectList) {
+        this.projectList = projectList;
+    }
     
 }
