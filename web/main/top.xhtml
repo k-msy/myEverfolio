@@ -23,8 +23,8 @@
         </h:form>
         <div id="toggl">
             <p>今日の勉強時間：#{togEnti.totalDurations}</p>
-            <ui:repeat var="#{togEnti.projectList}" value="#{project}">
-                <li><h:outputText value="#{project[1]}" /></li>
+            <ui:repeat value="#{togEnti.projectList}" var="project">
+                <li><h:outputText value="#{project.toString()}" /></li>
             </ui:repeat>
         </div>
         <div id="Withings">

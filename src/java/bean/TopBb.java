@@ -43,9 +43,10 @@ public class TopBb extends SuperBb implements Serializable {
     WithingsEnti wiEnti;
     
     @Inject
-    Toggl tgl;
+    Toggl toggl;
     @Inject
     TogglEnti togEnti;
+    private String[] project;
 
 
     public TopBb() {
@@ -120,14 +121,19 @@ public class TopBb extends SuperBb implements Serializable {
 */        
         // Toggl
         try{
-            ArrayList<String[]> projectList = tgl.getTodayDuration();
+            ArrayList<String[]> tmpProjectList = toggl.getTodayDuration();
+
+            long totalDurations = toggl.getTotalDurations(tmpProjectList);
+            togEnti.setTotalDurations(toggl.convertHms(totalDurations));
+            
+            ArrayList<String> projectList = toggl.convertProjectList(tmpProjectList);
             togEnti.setProjectList(projectList);
-            long totalDurations = tgl.getTotalDurations(projectList);
-            togEnti.setTotalDurations(tgl.convertHms(totalDurations));
         }catch(IOException e){
             System.out.println("Toggl失敗");
             e.printStackTrace();
         }
+        
+        
         
 
         return "";

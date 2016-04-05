@@ -37,6 +37,7 @@ public class Toggl extends SuperOauth {
     private static final String api_token = "101872f22ff214f3902d2e9ae565264c";
     private static final String togglMe = "https://www.toggl.com/api/v8/me";
     //private static final String method = "GET";
+    
 
     public Toggl() {
 
@@ -142,6 +143,14 @@ public class Toggl extends SuperOauth {
          System.out.println("Seconds = " + String.valueOf(seconds));
          */
         return String.format("%02d:%02d:%02d", hours, minutes, seconds);
+    }
+
+    public ArrayList<String> convertProjectList(ArrayList<String[]> tmpProjectList) {
+        ArrayList<String> list = new ArrayList<>();
+        for(String[] tmp : tmpProjectList){
+            list.add(tmp[1] + ":  " + convertHms(Long.valueOf(tmp[2])));
+        }
+        return list;
     }
 
 }

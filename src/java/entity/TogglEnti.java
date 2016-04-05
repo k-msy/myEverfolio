@@ -20,7 +20,7 @@ public class TogglEnti {
 
     private String totalDurations;
     
-    ArrayList<String[]> projectList;
+    ArrayList<String> projectList;
 
     public String getTotalDurations() {
         return totalDurations;
@@ -30,11 +30,11 @@ public class TogglEnti {
         this.totalDurations = totalDurations;
     }
 
-    public ArrayList<String[]> getProjectList() {
+    public ArrayList<String> getProjectList() {
         return projectList;
     }
 
-    public void setProjectList(ArrayList<String[]> projectList) {
+    public void setProjectList(ArrayList<String> projectList) {
         this.projectList = projectList;
     }
     
