@@ -59,9 +59,9 @@ public class Toggl extends SuperOauth {
         List<Workspace> workspaces = jToggl.getWorkspaces();
         workspace = workspaces.get(0);
 
-        LocalDate fromDate = LocalDate.now().minusDays(1);
-        LocalDate toDate = LocalDate.now();
-        //LocalDate toDate = LocalDate.now().plusDays(1);
+        //LocalDate fromDate = LocalDate.now().minusDays(1);
+        LocalDate fromDate = LocalDate.now();
+        LocalDate toDate = LocalDate.now().plusDays(1);
 
         List<TimeEntry> timeEntryList = jToggl.getTimeEntries(Date.valueOf(fromDate), Date.valueOf(toDate));
 

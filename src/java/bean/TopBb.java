@@ -6,15 +6,11 @@
 package bean;
 
 import entity.TogglEnti;
-import entity.WithingsEnti;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.ejb.EJB;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -24,7 +20,8 @@ import javax.servlet.http.HttpSession;
 import oauth.Toggl;
 import oauth.Twitter;
 import oauth.Withings;
-import oauth.Zaim;
+import oauth.Zaim_origin;
+import view.CalendarView;
 
 /**
  *
@@ -34,23 +31,23 @@ import oauth.Zaim;
 @RequestScoped
 public class TopBb extends SuperBb implements Serializable {
 
-    @EJB
-    private AsyncExecute asyncExecute;
-
     @Inject
     Withings wi;
-    @Inject
-    WithingsEnti wiEnti;
-    
+
     @Inject
     Toggl toggl;
     @Inject
     TogglEnti togEnti;
     private String[] project;
+    
+    @Inject
+    CalendarView cal;
 
+    @Inject
+    Zaim_origin oZaim;
 
     public TopBb() {
-        wi = new Withings();
+
     }
 
     public String verifyTwitter() {
@@ -67,11 +64,6 @@ public class TopBb extends SuperBb implements Serializable {
     }
 
     public String verifyZaim() {
-        HttpServletRequest request = getRequest();
-        HttpServletResponse response = getResponse();
-
-        Zaim zaim = new Zaim();
-        zaim.verify(request, response);
 
         return "";
     }
@@ -93,49 +85,61 @@ public class TopBb extends SuperBb implements Serializable {
     public String checkTokens() {
         HttpServletRequest request = getRequest();
         HttpSession session = request.getSession(true);
-/*
-        // Withings
-        if (session.getAttribute("request_token") == null) {
-            wi.verify();
-        } else if (session.getAttribute("access_token") == null) {
-            try {
-                wi.getAccessToken();
-            } catch (IOException ex) {
-                Logger.getLogger(TopBb.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        } else {
+
+        if (wi.isExistAccessToken(session)) {
             System.out.println("歩数・体重データを取得する準備ができてます");
             try {
-                // 歩数・体重データを取得する準備ができてます。
-                String rawDataForSteps = wi.getRawDataForSteps();
-                Map<String, String> stepsMap = new HashMap<>();
-                stepsMap = wi.adjustSteps(rawDataForSteps);
-                wiEnti.setYesterday(stepsMap.get("yesterday"));
-                wiEnti.setToday(stepsMap.get("today"));
-                wiEnti.setDifference(stepsMap.get("difference"));
-                //System.out.println(wi.getRawDataForSteps());
+                // 歩数データを取得・設定する
+                wi.setStepsMeasures();
+                // 体重データを取得・設定する
+                wi.setWeightMeasures();
             } catch (IOException ex) {
-                Logger.getLogger(TopBb.class.getName()).log(Level.SEVERE, null, ex);
+                System.out.println("歩数・体重データ取得でなんらかの例外キャッチしたよ");
             }
         }
-*/        
+
         // Toggl
-        try{
+        try {
             ArrayList<String[]> tmpProjectList = toggl.getTodayDuration();
 
             long totalDurations = toggl.getTotalDurations(tmpProjectList);
             togEnti.setTotalDurations(toggl.convertHms(totalDurations));
-            
+
             ArrayList<String> projectList = toggl.convertProjectList(tmpProjectList);
             togEnti.setProjectList(projectList);
-        }catch(IOException e){
+        } catch (IOException e) {
             System.out.println("Toggl失敗");
             e.printStackTrace();
         }
-        
-        
-        
 
+        // Zaim
+         /*
+         try {
+         oZaim.verify();
+         } catch (IOException ex) {
+         Logger.getLogger(TopBb.class.getName()).log(Level.SEVERE, null, ex);
+         }
+         */
         return "";
     }
+
+    public String getRangeData() {
+        //withings
+        HttpServletRequest request = getRequest();
+        HttpSession session = request.getSession(true);
+        if (wi.isExistAccessToken(session)) {
+            System.out.println("歩数・体重データを取得する準備ができてます");
+            //try {
+                // 歩数データを取得・設定する
+                wi.setRangeStepsMeasures(cal.getFrom(), cal.getTo());
+                // 体重データを取得・設定する
+                wi.setRangeWeightMeasures(cal.getFrom(), cal.getTo());
+            //} catch (IOException ex) {
+            //    System.out.println("歩数・体重データ取得でなんらかの例外キャッチしたよ");
+            //}
+        }
+        //toggl
+        return "";
+    }
+
 }

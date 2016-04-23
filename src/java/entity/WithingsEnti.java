@@ -29,9 +29,19 @@ public class WithingsEnti {
     private String status = "";
     private String body = "";
 
-    private String yesterday = "";
-    private String today = "";
-    private String difference = "";
+    private String yesterdaySteps = "";
+    private String todaySteps = "";
+    private String differenceSteps = "";
+
+    private String pastWeight = "";
+    private String currentWeight = "";
+    private String differenceWeight = "";
+
+    private String stepArrowIconPass = "";
+    private String stepEmoIconPass = "";
+
+    private String weightArrowIconPass = "";
+    private String weightEmoIconPass = "";
 
     public String getDate() {
         return date;
@@ -129,30 +139,84 @@ public class WithingsEnti {
         this.body = body;
     }
 
-    public String getYesterday() {
-        return yesterday;
+    public String getYesterdaySteps() {
+        return yesterdaySteps;
     }
 
-    public void setYesterday(String yesterday) {
-        this.yesterday = yesterday;
+    public void setYesterdaySteps(String yesterdaySteps) {
+        this.yesterdaySteps = yesterdaySteps;
     }
 
-    public String getToday() {
-        return today;
+    public String getTodaySteps() {
+        return todaySteps;
     }
 
-    public void setToday(String today) {
-        this.today = today;
+    public void setTodaySteps(String todaySteps) {
+        this.todaySteps = todaySteps;
     }
 
-    public String getDifference() {
-        return difference;
+    public String getDifferenceSteps() {
+        return differenceSteps;
     }
 
-    public void setDifference(String difference) {
-        this.difference = difference;
+    public void setDifferenceSteps(String differenceSteps) {
+        this.differenceSteps = differenceSteps;
     }
 
+    public String getPastWeight() {
+        return pastWeight;
+    }
 
+    public void setPastWeight(String pastWeight) {
+        this.pastWeight = pastWeight;
+    }
+
+    public String getCurrentWeight() {
+        return currentWeight;
+    }
+
+    public void setCurrentWeight(String currentWeight) {
+        this.currentWeight = currentWeight;
+    }
+
+    public String getDifferenceWeight() {
+        return differenceWeight;
+    }
+
+    public void setDifferenceWeight(String differenceWeight) {
+        this.differenceWeight = differenceWeight;
+    }
+
+    public String getStepArrowIconPass() {
+        return stepArrowIconPass;
+    }
+
+    public void setStepArrowIconPass(String stepArrowIconPass) {
+        this.stepArrowIconPass = stepArrowIconPass;
+    }
+
+    public String getStepEmoIconPass() {
+        return stepEmoIconPass;
+    }
+
+    public void setStepEmoIconPass(String stepEmoIconPass) {
+        this.stepEmoIconPass = stepEmoIconPass;
+    }
+
+    public String getWeightArrowIconPass() {
+        return weightArrowIconPass;
+    }
+
+    public void setWeightArrowIconPass(String weightArrowIconPass) {
+        this.weightArrowIconPass = weightArrowIconPass;
+    }
+
+    public String getWeightEmoIconPass() {
+        return weightEmoIconPass;
+    }
+
+    public void setWeightEmoIconPass(String weightEmoIconPass) {
+        this.weightEmoIconPass = weightEmoIconPass;
+    }
 
 }

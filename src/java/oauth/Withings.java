@@ -5,14 +5,20 @@
  */
 package oauth;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import entity.WithingsEnti;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -24,10 +30,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.PatternSyntaxException;
 import javax.enterprise.context.SessionScoped;
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
 
 /**
  *
@@ -51,8 +57,10 @@ public class Withings extends SuperOauth {
     private String sigKey;
     private String sigData;
 
+    @Inject
+    WithingsEnti wiEnti;
+
     SortedMap<String, String> paramsMap;
-    //private String authHeader;
 
     private int difference = 0;
 
@@ -62,44 +70,6 @@ public class Withings extends SuperOauth {
         this.sigData = super.makeSigData(CONSUMER_KEY, REQUEST_TOKEN_URL, paramsMap, method);
         this.sigKey = super.makeSigKey(CONSUMER_SECRET, "");
     }
-
-    /*
-    @Override
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        System.out.println("帰ってきたウルトラマン！？");
-        session.setAttribute("userid", request.getParameter("userid"));
-        session.setAttribute("oauth_token", request.getParameter("oauth_token"));
-        session.setAttribute("oauth_verifier", request.getParameter("oauth_verifier"));
-
-        getAccessToken();
-
-        //昨日と今日の歩数を取得
-        String twoDaysSteps = getTwoDaysSteps();
-        System.out.println("stepsResult=" + twoDaysSteps);
-        
-
-        //昨日と今日の体重を取得
-        String weightResult = getWeightMeasures();
-        System.out.println("weightResult=" + weightResult);
-
-        ChartView chart = new ChartView();
-        //chart.init(stepList);
-
-        //System.out.println("何個ある？" + testParse.length + "}");
-        //System.out.println("testParse[0] + } =" + testParse[0] + "}");
-        //String hogehoge = testParse[0] + "}";
-        //System.out.println("hogehoge =" + hogehoge);
-        //System.out.println("wi.steps = " + wi.getSteps());
-        /*
-        try {
-            response.sendRedirect("http://127.0.0.1:8080/myEverfolio/faces/main/top.xhtml?faces-redirect=true");
-        } catch (IOException ex) {
-            Logger.getLogger(Withings.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        //super.responseComplete();
-                */
-    //}
-
 
     public void verify() {
 
@@ -131,7 +101,7 @@ public class Withings extends SuperOauth {
             connection.setRequestMethod(method);
             connection.connect();
             reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String reqTokenResult = "";
+            String reqTokenResult;
             reqTokenResult = reader.readLine();
             if (!"".equals(reqTokenResult)) {
                 String[] split = extractToken(reqTokenResult);
@@ -158,7 +128,6 @@ public class Withings extends SuperOauth {
         }
     }
 
-    
     private void sendRedirect() {
         //
         String REQUEST_TOKEN = session.getAttribute("request_token").toString();
@@ -260,7 +229,7 @@ public class Withings extends SuperOauth {
         return result;
     }
 
-    public String getRawDataForSteps() throws IOException {
+    private String getRawDataForSteps() throws IOException {
         HttpURLConnection connection = null;
         BufferedReader reader = null;
         String ACCESS_TOKEN = session.getAttribute("access_token").toString();
@@ -307,13 +276,16 @@ public class Withings extends SuperOauth {
             reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 
             String text = reader.readLine();
-            //System.out.println("text=" + text);
+            System.out.println("text=" + text);
+
             String[] result = null;
             result = text.split("\\[");
             String[] jsonText = result[1].split("\\]");
+            jsonText[0] = "[" + jsonText[0] + "]";
             System.out.println("jsonText[0]=" + jsonText[0]);
 
             return jsonText[0];
+            //return text;
         } catch (IOException ex) {
             ex.printStackTrace();
         } finally {
@@ -327,7 +299,7 @@ public class Withings extends SuperOauth {
         return "";
     }
 
-    public String getWeightMeasures() throws IOException {
+    public String setWeightMeasures() throws IOException {
         HttpURLConnection connection = null;
         BufferedReader reader = null;
         String USER_ID = session.getAttribute("userid").toString();
@@ -375,10 +347,50 @@ public class Withings extends SuperOauth {
             connection.connect();
             reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 
-            String text = reader.readLine();
-            //System.out.println("weightResultRowResult=" + text);
+            String jsonText = reader.readLine();
 
-            return text;
+            //任意の期間中のJSONデータをListに詰め替える
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode node = mapper.readValue(jsonText, JsonNode.class);
+            //updateTime取得
+            String updateTime = node.get("body").get("updatetime").toString();
+            //measuregrps取得
+            JsonNode measuregrps = node.get("body").get("measuregrps");
+
+            ArrayList<Double> weightList = new ArrayList<>();
+            for (JsonNode measures : measuregrps) {
+                Double value = measures.get("measures").get(0).get("value").asDouble();
+                System.out.println("value =" + String.valueOf(value));
+                //int unit = measures.get("measures").get(0).get("unit").asInt();
+
+                for (int unit = measures.get("measures").get(0).get("unit").asInt(); unit < 0; unit++) {
+                    value = value / 10;
+                }
+                weightList.add(value);
+                System.out.println("realValue =" + String.valueOf(value));
+                //System.out.println("unit =" + unit);
+            }
+            if (weightList.size() < 0) {
+                //直近2日にかけて、体重計に乗っていない場合
+                System.out.println("体重計に乗って、現実を見よう。");
+            } else if (weightList.size() == 1) {
+                //体重データが1つの場合
+                Double current = weightList.get(0);
+                wiEnti.setCurrentWeight(String.valueOf(current));
+                setWeightIconPass(0.0);
+            } else if (weightList.size() >= 2) {
+                //体重データが2つ以上の場合
+                Double current = weightList.get(0);
+                Double past = weightList.get(1);
+                BigDecimal difference = new BigDecimal(current - past);
+                difference = difference.setScale(1, BigDecimal.ROUND_DOWN);
+                System.out.println("difference =" + String.valueOf(difference.doubleValue()));
+                wiEnti.setPastWeight(String.valueOf(past));
+                wiEnti.setCurrentWeight(String.valueOf(current));
+                setWeightIconPass(difference.doubleValue());
+            }
+
+            return jsonText;
         } catch (IOException ex) {
             ex.printStackTrace();
         } finally {
@@ -407,29 +419,27 @@ public class Withings extends SuperOauth {
     }
 
     private Map<String, String> getUTC_TodayAndYesterday(Map<String, String> utcMap) {
-        Long nowTime = System.currentTimeMillis() / 1000L;
+        ZonedDateTime d = ZonedDateTime.now().plusDays(1).truncatedTo(ChronoUnit.DAYS);
+        Long nowTime = d.toEpochSecond() - 1;
+        //Long nowTime = System.currentTimeMillis() / 1000L;
         //Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-        //今日の日付を取得
-        utcMap.put("today", nowTime.toString());
-        //昨日の日付を取得
-        Long pastTime = nowTime - 86400;
+        //今日の日付を取得（23時59分59秒まで）
+        utcMap.put("today", (nowTime).toString());
+        //昨日の日付を取得（0時0分0秒から）
+        Long pastTime = nowTime - 172799;
         utcMap.put("yesterday", pastTime.toString());
 
         return utcMap;
     }
 
-
-
-    public Map<String, String> adjustSteps(String rawDataForSteps) throws IOException {
+    private Map<String, String> adjustSteps(String rawDataForSteps) throws IOException {
         //任意の期間中のJSONデータをListに詰め替える
         ObjectMapper mapper = new ObjectMapper();
         ArrayList<WithingsEnti> wiList = new ArrayList<WithingsEnti>();
         //「,」で区切られたresultの1つを試しにパースできるかどうか確認する
-        String[] testParse = rawDataForSteps.split("},");
-        for (int i = 0; i < testParse.length; i++) {
-            WithingsEnti wi = mapper.readValue(testParse[i] + "}", WithingsEnti.class);
-            wiList.add(wi);
-        }
+        wiList = mapper.readValue(rawDataForSteps, new TypeReference<ArrayList<WithingsEnti>>() {
+        });
+
         //Listから「歩数」のみ抽出して、Listに詰め替える
         ArrayList<Integer> stepList = new ArrayList<Integer>();
         for (int i = 0; i < wiList.size(); i++) {
@@ -437,21 +447,96 @@ public class Withings extends SuperOauth {
             System.out.println(String.valueOf(i) + "番目のステップ数 =" + wiList.get(i).getSteps());
         }
         System.out.println("ステップリスト内の要素数：" + String.valueOf(stepList.size()));
-        
+
         Map<String, String> stepsMap = new HashMap<>();
         if (1 >= stepList.size()) {
             //1日分しか歩数データが取れなかった場合
             System.out.println("今日のデータが同期されてないっぽいです");
         } else {
             //2日分歩数データが取れた場合
-            int yesterday=stepList.get(0);
-            int today=stepList.get(1);
+            int yesterday = stepList.get(0);
+            int today = stepList.get(1);
+            String diffrence = String.valueOf(today - yesterday);
             stepsMap.put("yesterday", String.valueOf(yesterday));
             stepsMap.put("today", String.valueOf(today));
-            stepsMap.put("difference", String.valueOf(today - yesterday));
-            System.out.println("today - yesterday=" + String.valueOf(today - yesterday));
-        }  
+            stepsMap = setIconPass(stepsMap, diffrence);
+        }
         return stepsMap;
     }
 
+    private Map<String, String> setIconPass(Map<String, String> stepsMap, String diffrence) {
+        int diff = Integer.valueOf(diffrence);
+        if (0 > diff) {
+            stepsMap.put("difference", diffrence);
+            stepsMap.put("arrowIcon", "../img/negative_down.png");
+            stepsMap.put("emoIcon", "../img/bad.png");
+        } else if (0 == diff) {
+            stepsMap.put("difference", diffrence);
+            stepsMap.put("arrowIcon", "../img/neutralArrow.png");
+            stepsMap.put("emoIcon", "../img/neutralEmo.png");
+        } else if (0 < diff) {
+            stepsMap.put("difference", "+" + diffrence);
+            stepsMap.put("arrowIcon", "../img/positive_up.png");
+            stepsMap.put("emoIcon", "../img/good.png");
+        }
+        return stepsMap;
+    }
+
+    public void setStepsMeasures() throws IOException {
+        String rawDataForSteps = getRawDataForSteps();
+        Map<String, String> stepsMap = new HashMap<>();
+        stepsMap = adjustSteps(rawDataForSteps);
+        wiEnti.setYesterdaySteps(stepsMap.get("yesterday"));
+        wiEnti.setTodaySteps(stepsMap.get("today"));
+        wiEnti.setDifferenceSteps(stepsMap.get("difference"));
+        wiEnti.setStepArrowIconPass(stepsMap.get("arrowIcon"));
+        wiEnti.setStepEmoIconPass(stepsMap.get("emoIcon"));
+    }
+
+    private void setWeightIconPass(Double diff) {
+        if (0.0 > diff) {
+            wiEnti.setDifferenceWeight(String.valueOf(diff));
+            wiEnti.setWeightArrowIconPass("../img/positive_down.png");
+            wiEnti.setWeightEmoIconPass("../img/good.png");
+        } else if (0.0 == diff) {
+            wiEnti.setDifferenceWeight(String.valueOf(diff));
+            wiEnti.setWeightArrowIconPass("../img/neutralArrow.png");
+            wiEnti.setWeightEmoIconPass("../img/neutralEmo.png");
+        } else if (0.0 < diff) {
+            wiEnti.setDifferenceWeight("+" + String.valueOf(diff));
+            wiEnti.setWeightArrowIconPass("../img/negative_up.png");
+            wiEnti.setWeightEmoIconPass("../img/bad.png");
+        }
+    }
+
+    public boolean isExistAccessToken(HttpSession session) {
+        boolean exist = true;
+        if (session.getAttribute("request_token") == null) {
+            verify();
+            exist = false;
+        } else if (session.getAttribute("access_token") == null) {
+            try {
+                getAccessToken();
+                exist = false;
+            } catch (IOException ex) {
+                System.out.println("getAccessTokenでなんらかの例外キャッチしたよ");
+            }
+        }
+        return exist;
+    }
+
+    /*        
+
+     }
+     */
+
+
+
+    public void setRangeStepsMeasures(Date from, Date to) {
+        
+    }
+
+    public void setRangeWeightMeasures(Date from, Date to) {
+        
+    }
 }
