@@ -229,7 +229,14 @@ public class Withings extends SuperOauth {
         return result;
     }
 
-    private String getRawDataForSteps() throws IOException {
+    /**
+     * WithingsAPIより、指定期日の歩数データを取得する
+     * @param from
+     * @param to
+     * @return
+     * @throws IOException 
+     */
+    private String getRawDataForSteps(String from, String to) throws IOException {
         HttpURLConnection connection = null;
         BufferedReader reader = null;
         String ACCESS_TOKEN = session.getAttribute("access_token").toString();
@@ -241,10 +248,8 @@ public class Withings extends SuperOauth {
 
             paramsMap.put("action", "getactivity");
 
-            Map<String, String> dateMap = new HashMap();
-            dateMap = getTodayAndYesterday(dateMap);
-            paramsMap.put("startdateymd", dateMap.get("yesterday"));
-            paramsMap.put("enddateymd", dateMap.get("today"));
+            paramsMap.put("startdateymd", from);
+            paramsMap.put("enddateymd", to);
             paramsMap.put("oauth_consumer_key", CONSUMER_KEY);
             paramsMap.put("oauth_nonce", super.getRandomChar());
             paramsMap.put("oauth_timestamp", String.valueOf(super.getUnixTime()));
@@ -404,20 +409,12 @@ public class Withings extends SuperOauth {
         return "";
     }
 
-    private Map<String, String> getTodayAndYesterday(Map<String, String> dateMap) {
-        //今日の日付を取得、yyyy-MM-ddに変換
-        Date date = new Date();
-        SimpleDateFormat formatted = new SimpleDateFormat("yyyy-MM-dd");
-        dateMap.put("today", formatted.format(date));
 
-        //昨日の日付を取得、yyyy-MM-ddに変換
-        Calendar yesterday = Calendar.getInstance();
-        yesterday.setTime(date);
-        yesterday.add(Calendar.DAY_OF_MONTH, -1);
-        dateMap.put("yesterday", formatted.format(yesterday.getTime()));
-        return dateMap;
-    }
-
+    /**
+     * UNIX時で今日と昨日の日付を取得する
+     * @param utcMap
+     * @return 
+     */
     private Map<String, String> getUTC_TodayAndYesterday(Map<String, String> utcMap) {
         ZonedDateTime d = ZonedDateTime.now().plusDays(1).truncatedTo(ChronoUnit.DAYS);
         Long nowTime = d.toEpochSecond() - 1;
@@ -459,12 +456,67 @@ public class Withings extends SuperOauth {
             String diffrence = String.valueOf(today - yesterday);
             stepsMap.put("yesterday", String.valueOf(yesterday));
             stepsMap.put("today", String.valueOf(today));
-            stepsMap = setIconPass(stepsMap, diffrence);
+            stepsMap = setStepIconPass(stepsMap, diffrence);
         }
         return stepsMap;
     }
 
-    private Map<String, String> setIconPass(Map<String, String> stepsMap, String diffrence) {
+
+
+    /**
+     * 昨日と今日の歩数を設定する
+     * @throws IOException 
+     */
+    public void setStepsMeasures() throws IOException {
+        Date date = new Date();
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+
+        String yesterday = getYesterDayYyyyMmDd(date, formatter);
+        String today = formatYyyyMmDd(date, formatter);
+
+        String rawDataForSteps = getRawDataForSteps(yesterday, today);
+        Map<String, String> stepsMap = new HashMap<>();
+        stepsMap = adjustSteps(rawDataForSteps);
+        wiEnti.setYesterdaySteps(yesterday);
+        wiEnti.setTodaySteps(today);
+        wiEnti.setDifferenceSteps(stepsMap.get("difference"));
+        wiEnti.setStepArrowIconPass(stepsMap.get("arrowIcon"));
+        wiEnti.setStepEmoIconPass(stepsMap.get("emoIcon"));
+    }
+
+        /**
+     * 範囲期日中の歩数を設定する
+     * @param from
+     * @param to 
+     */
+    public void setRangeStepsMeasures(Date from, Date to) {
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+        String rawDataForSteps;
+        try {
+            rawDataForSteps = getRawDataForSteps(formatYyyyMmDd(from, formatter), formatYyyyMmDd(to, formatter));
+        } catch (IOException ex) {
+            Logger.getLogger(Withings.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+
+    /**
+     * 範囲期日中の体重を取得・設定する
+     * @param from
+     * @param to 
+     */
+    public void setRangeWeightMeasures(Date from, Date to) {
+
+    }
+
+    
+    /**
+     * 歩数_アイコン設定
+     * @param stepsMap
+     * @param diffrence
+     * @return 
+     */
+    private Map<String, String> setStepIconPass(Map<String, String> stepsMap, String diffrence) {
         int diff = Integer.valueOf(diffrence);
         if (0 > diff) {
             stepsMap.put("difference", diffrence);
@@ -480,19 +532,12 @@ public class Withings extends SuperOauth {
             stepsMap.put("emoIcon", "../img/good.png");
         }
         return stepsMap;
-    }
-
-    public void setStepsMeasures() throws IOException {
-        String rawDataForSteps = getRawDataForSteps();
-        Map<String, String> stepsMap = new HashMap<>();
-        stepsMap = adjustSteps(rawDataForSteps);
-        wiEnti.setYesterdaySteps(stepsMap.get("yesterday"));
-        wiEnti.setTodaySteps(stepsMap.get("today"));
-        wiEnti.setDifferenceSteps(stepsMap.get("difference"));
-        wiEnti.setStepArrowIconPass(stepsMap.get("arrowIcon"));
-        wiEnti.setStepEmoIconPass(stepsMap.get("emoIcon"));
-    }
-
+    }    
+    
+    /**
+     * 体重_アイコン設定
+     * @param diff 
+     */
     private void setWeightIconPass(Double diff) {
         if (0.0 > diff) {
             wiEnti.setDifferenceWeight(String.valueOf(diff));
@@ -509,6 +554,11 @@ public class Withings extends SuperOauth {
         }
     }
 
+    /**
+     * アクセストークンの存在チェック
+     * @param session
+     * @return 
+     */
     public boolean isExistAccessToken(HttpSession session) {
         boolean exist = true;
         if (session.getAttribute("request_token") == null) {
@@ -525,18 +575,28 @@ public class Withings extends SuperOauth {
         return exist;
     }
 
-    /*        
 
-     }
+
+    /**
+     * 今日の日付を取得する
+     * @param date
+     * @param formatted
+     * @return 
      */
-
-
-
-    public void setRangeStepsMeasures(Date from, Date to) {
-        
+    private String formatYyyyMmDd(Date date, SimpleDateFormat formatted) {
+        return formatted.format(date);
     }
 
-    public void setRangeWeightMeasures(Date from, Date to) {
-        
+    /**
+     * 今日の日付から、昨日の日付を取得する
+     * @param date
+     * @param formatted
+     * @return 
+     */
+    private String getYesterDayYyyyMmDd(Date date, SimpleDateFormat formatted) {
+        Calendar yesterday = Calendar.getInstance();
+        yesterday.setTime(date);
+        yesterday.add(Calendar.DAY_OF_MONTH, -1);
+        return formatted.format(yesterday.getTime());
     }
 }

@@ -87,7 +87,6 @@ public class TopBb extends SuperBb implements Serializable {
         HttpSession session = request.getSession(true);
 
         if (wi.isExistAccessToken(session)) {
-            System.out.println("歩数・体重データを取得する準備ができてます");
             try {
                 // 歩数データを取得・設定する
                 wi.setStepsMeasures();
@@ -123,7 +122,7 @@ public class TopBb extends SuperBb implements Serializable {
         return "";
     }
 
-    public String getRangeData() {
+    public String setRangeData() {
         //withings
         HttpServletRequest request = getRequest();
         HttpSession session = request.getSession(true);
