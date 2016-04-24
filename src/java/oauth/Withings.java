@@ -231,10 +231,11 @@ public class Withings extends SuperOauth {
 
     /**
      * WithingsAPIより、指定期日の歩数データを取得する
+     *
      * @param from
      * @param to
      * @return
-     * @throws IOException 
+     * @throws IOException
      */
     private String getRawDataForSteps(String from, String to) throws IOException {
         HttpURLConnection connection = null;
@@ -283,14 +284,7 @@ public class Withings extends SuperOauth {
             String text = reader.readLine();
             System.out.println("text=" + text);
 
-            String[] result = null;
-            result = text.split("\\[");
-            String[] jsonText = result[1].split("\\]");
-            jsonText[0] = "[" + jsonText[0] + "]";
-            System.out.println("jsonText[0]=" + jsonText[0]);
-
-            return jsonText[0];
-            //return text;
+            return text;
         } catch (IOException ex) {
             ex.printStackTrace();
         } finally {
@@ -409,63 +403,44 @@ public class Withings extends SuperOauth {
         return "";
     }
 
-
-    /**
-     * UNIX時で今日と昨日の日付を取得する
-     * @param utcMap
-     * @return 
-     */
-    private Map<String, String> getUTC_TodayAndYesterday(Map<String, String> utcMap) {
-        ZonedDateTime d = ZonedDateTime.now().plusDays(1).truncatedTo(ChronoUnit.DAYS);
-        Long nowTime = d.toEpochSecond() - 1;
-        //Long nowTime = System.currentTimeMillis() / 1000L;
-        //Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-        //今日の日付を取得（23時59分59秒まで）
-        utcMap.put("today", (nowTime).toString());
-        //昨日の日付を取得（0時0分0秒から）
-        Long pastTime = nowTime - 172799;
-        utcMap.put("yesterday", pastTime.toString());
-
-        return utcMap;
-    }
-
     private Map<String, String> adjustSteps(String rawDataForSteps) throws IOException {
         //任意の期間中のJSONデータをListに詰め替える
         ObjectMapper mapper = new ObjectMapper();
-        ArrayList<WithingsEnti> wiList = new ArrayList<WithingsEnti>();
-        //「,」で区切られたresultの1つを試しにパースできるかどうか確認する
-        wiList = mapper.readValue(rawDataForSteps, new TypeReference<ArrayList<WithingsEnti>>() {
-        });
+        JsonNode node = mapper.readValue(rawDataForSteps, JsonNode.class);
+        JsonNode activities = node.get("body").get("activities");
 
-        //Listから「歩数」のみ抽出して、Listに詰め替える
         ArrayList<Integer> stepList = new ArrayList<Integer>();
-        for (int i = 0; i < wiList.size(); i++) {
-            stepList.add(wiList.get(i).getSteps());
-            System.out.println(String.valueOf(i) + "番目のステップ数 =" + wiList.get(i).getSteps());
+        for (JsonNode activity : activities) {
+            stepList.add(activity.get("steps").asInt());
         }
-        System.out.println("ステップリスト内の要素数：" + String.valueOf(stepList.size()));
 
+        int yesterday = 0;
+        int today = 0;
+        String diffrence;
         Map<String, String> stepsMap = new HashMap<>();
-        if (1 >= stepList.size()) {
-            //1日分しか歩数データが取れなかった場合
+        if (0 == stepList.size()) {
+            diffrence = String.valueOf(today - yesterday);
+            System.out.println("最近2日間の歩数データがありません");
+        } else if (1 >= stepList.size()) {
+            yesterday = stepList.get(0);
+            diffrence = String.valueOf(today - yesterday);
             System.out.println("今日のデータが同期されてないっぽいです");
         } else {
-            //2日分歩数データが取れた場合
-            int yesterday = stepList.get(0);
-            int today = stepList.get(1);
-            String diffrence = String.valueOf(today - yesterday);
-            stepsMap.put("yesterday", String.valueOf(yesterday));
-            stepsMap.put("today", String.valueOf(today));
-            stepsMap = setStepIconPass(stepsMap, diffrence);
+            yesterday = stepList.get(0);
+            today = stepList.get(1);
+            diffrence = String.valueOf(today - yesterday);
         }
+        stepsMap.put("yesterday", String.valueOf(yesterday));
+        stepsMap.put("today", String.valueOf(today));
+        stepsMap = setStepIconPass(stepsMap, diffrence);
+
         return stepsMap;
     }
 
-
-
     /**
      * 昨日と今日の歩数を設定する
-     * @throws IOException 
+     *
+     * @throws IOException
      */
     public void setStepsMeasures() throws IOException {
         Date date = new Date();
@@ -477,44 +452,54 @@ public class Withings extends SuperOauth {
         String rawDataForSteps = getRawDataForSteps(yesterday, today);
         Map<String, String> stepsMap = new HashMap<>();
         stepsMap = adjustSteps(rawDataForSteps);
-        wiEnti.setYesterdaySteps(yesterday);
-        wiEnti.setTodaySteps(today);
+        wiEnti.setYesterdaySteps(stepsMap.get("yesterday"));
+        wiEnti.setTodaySteps(stepsMap.get("today"));
         wiEnti.setDifferenceSteps(stepsMap.get("difference"));
         wiEnti.setStepArrowIconPass(stepsMap.get("arrowIcon"));
         wiEnti.setStepEmoIconPass(stepsMap.get("emoIcon"));
     }
 
-        /**
+    /**
      * 範囲期日中の歩数を設定する
+     *
      * @param from
-     * @param to 
+     * @param to
      */
     public void setRangeStepsMeasures(Date from, Date to) {
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
         String rawDataForSteps;
         try {
             rawDataForSteps = getRawDataForSteps(formatYyyyMmDd(from, formatter), formatYyyyMmDd(to, formatter));
+            //任意の期間中のJSONデータをListに詰め替える
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode node = mapper.readValue(rawDataForSteps, JsonNode.class);
+            JsonNode activities = node.get("body").get("activities");
+
+            ArrayList<Integer> stepList = new ArrayList<Integer>();
+            for (JsonNode activity : activities) {
+                stepList.add(activity.get("steps").asInt());
+            }
         } catch (IOException ex) {
             Logger.getLogger(Withings.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-
     /**
      * 範囲期日中の体重を取得・設定する
+     *
      * @param from
-     * @param to 
+     * @param to
      */
     public void setRangeWeightMeasures(Date from, Date to) {
 
     }
 
-    
     /**
      * 歩数_アイコン設定
+     *
      * @param stepsMap
      * @param diffrence
-     * @return 
+     * @return
      */
     private Map<String, String> setStepIconPass(Map<String, String> stepsMap, String diffrence) {
         int diff = Integer.valueOf(diffrence);
@@ -532,11 +517,12 @@ public class Withings extends SuperOauth {
             stepsMap.put("emoIcon", "../img/good.png");
         }
         return stepsMap;
-    }    
-    
+    }
+
     /**
      * 体重_アイコン設定
-     * @param diff 
+     *
+     * @param diff
      */
     private void setWeightIconPass(Double diff) {
         if (0.0 > diff) {
@@ -556,8 +542,9 @@ public class Withings extends SuperOauth {
 
     /**
      * アクセストークンの存在チェック
+     *
      * @param session
-     * @return 
+     * @return
      */
     public boolean isExistAccessToken(HttpSession session) {
         boolean exist = true;
@@ -575,13 +562,12 @@ public class Withings extends SuperOauth {
         return exist;
     }
 
-
-
     /**
      * 今日の日付を取得する
+     *
      * @param date
      * @param formatted
-     * @return 
+     * @return
      */
     private String formatYyyyMmDd(Date date, SimpleDateFormat formatted) {
         return formatted.format(date);
@@ -589,14 +575,35 @@ public class Withings extends SuperOauth {
 
     /**
      * 今日の日付から、昨日の日付を取得する
+     *
      * @param date
      * @param formatted
-     * @return 
+     * @return
      */
     private String getYesterDayYyyyMmDd(Date date, SimpleDateFormat formatted) {
         Calendar yesterday = Calendar.getInstance();
         yesterday.setTime(date);
         yesterday.add(Calendar.DAY_OF_MONTH, -1);
         return formatted.format(yesterday.getTime());
+    }
+
+    /**
+     * UNIX時で今日と昨日の日付を取得する
+     *
+     * @param utcMap
+     * @return
+     */
+    private Map<String, String> getUTC_TodayAndYesterday(Map<String, String> utcMap) {
+        ZonedDateTime d = ZonedDateTime.now().plusDays(1).truncatedTo(ChronoUnit.DAYS);
+        Long nowTime = d.toEpochSecond() - 1;
+        //Long nowTime = System.currentTimeMillis() / 1000L;
+        //Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        //今日の日付を取得（23時59分59秒まで）
+        utcMap.put("today", (nowTime).toString());
+        //昨日の日付を取得（0時0分0秒から）
+        Long pastTime = nowTime - 172799;
+        utcMap.put("yesterday", pastTime.toString());
+
+        return utcMap;
     }
 }
