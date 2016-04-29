@@ -129,10 +129,9 @@ public class TopBb extends SuperBb implements Serializable {
         if (wi.isExistAccessToken(session)) {
             System.out.println("歩数・体重データを取得する準備ができてます");
             //try {
-                // 歩数データを取得・設定する
-                wi.setRangeStepsMeasures(cal.getFrom(), cal.getTo());
-                // 体重データを取得・設定する
-                wi.setRangeWeightMeasures(cal.getFrom(), cal.getTo());
+                // 歩数・データを取得・設定する
+                wi.setRangeMeasures(cal.getFrom(), cal.getTo());
+
             //} catch (IOException ex) {
             //    System.out.println("歩数・体重データ取得でなんらかの例外キャッチしたよ");
             //}

@@ -5,7 +5,6 @@
  */
 package oauth;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import entity.WithingsEnti;
@@ -13,14 +12,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,6 +29,7 @@ import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import util.UtilDate;
 
 /**
  *
@@ -59,10 +55,11 @@ public class Withings extends SuperOauth {
 
     @Inject
     WithingsEnti wiEnti;
+    
+    @Inject
+    UtilDate utiDate;
 
     SortedMap<String, String> paramsMap;
-
-    private int difference = 0;
 
     public Withings() {
         this.paramsMap = super.makeParam(CONSUMER_KEY);
@@ -248,7 +245,6 @@ public class Withings extends SuperOauth {
             this.paramsMap.clear();
 
             paramsMap.put("action", "getactivity");
-
             paramsMap.put("startdateymd", from);
             paramsMap.put("enddateymd", to);
             paramsMap.put("oauth_consumer_key", CONSUMER_KEY);
@@ -298,109 +294,72 @@ public class Withings extends SuperOauth {
         return "";
     }
 
-    public String setWeightMeasures() throws IOException {
-        HttpURLConnection connection = null;
-        BufferedReader reader = null;
-        String USER_ID = session.getAttribute("userid").toString();
-        String ACCESS_TOKEN = session.getAttribute("access_token").toString();
-        String ACCESS_TOKEN_SECRET = session.getAttribute("access_token_secret").toString();
-        try {
-            this.paramsMap.clear();
+    public void setWeightMeasures() throws IOException {
+        Date date = new Date();
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 
-            paramsMap.put("action", "getmeas");
-            paramsMap.put("userid", USER_ID);
-            Map<String, String> utcMap = new HashMap();
-            utcMap = getUTC_TodayAndYesterday(utcMap);
-            System.out.println("yesterday=" + utcMap.get("yesterday"));
-            System.out.println("today=" + utcMap.get("today"));
-            paramsMap.put("startdate", utcMap.get("yesterday"));
-            paramsMap.put("enddate", utcMap.get("today"));
-            paramsMap.put("meastype", "1");
-            paramsMap.put("oauth_consumer_key", CONSUMER_KEY);
-            paramsMap.put("oauth_nonce", super.getRandomChar());
-            paramsMap.put("oauth_signature_method", "HMAC-SHA1");
-            paramsMap.put("oauth_timestamp", String.valueOf(super.getUnixTime()));
-            paramsMap.put("oauth_token", ACCESS_TOKEN);
-            paramsMap.put("oauth_version", "1.0");
+        String yesterday = utiDate.getYesterDayYyyyMmDd(date, formatter);
+        String today = utiDate.formatYyyyMmDd(date, formatter);
 
-            this.sigData = super.makeSigData(CONSUMER_KEY, "https://wbsapi.withings.net/measure", paramsMap, method);
-            //System.out.println("this.sigData=" + this.sigData);
-            this.sigKey = super.makeSigKey(CONSUMER_SECRET, ACCESS_TOKEN_SECRET);
+        String jsonText = getWeightJsonData(yesterday, today);
 
-            URL url = new URL("https://wbsapi.withings.net/measure"
-                    + "?action=" + "getmeas"
-                    + "&userid=" + URLEncode(USER_ID)
-                    + "&startdate=" + URLEncode(paramsMap.get("startdate"))
-                    + "&enddate=" + URLEncode(paramsMap.get("enddate"))
-                    + "&meastype=" + URLEncode(paramsMap.get("meastype"))
-                    + "&oauth_consumer_key=" + URLEncode(paramsMap.get("oauth_consumer_key"))
-                    + "&oauth_nonce=" + URLEncode(paramsMap.get("oauth_nonce"))
-                    + "&oauth_signature=" + URLEncode(super.makeSignature(sigKey, sigData))
-                    + "&oauth_signature_method=" + URLEncode(paramsMap.get("oauth_signature_method"))
-                    + "&oauth_timestamp=" + URLEncode(paramsMap.get("oauth_timestamp"))
-                    + "&oauth_token=" + URLEncode(ACCESS_TOKEN)
-                    + "&oauth_version=" + URLEncode(paramsMap.get("oauth_version")));
+        //任意の期間中のJSONデータをListに詰め替える
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode node = mapper.readValue(jsonText, JsonNode.class);
+        //updateTime取得
+        String updateTime = node.get("body").get("updatetime").toString();
+        //measuregrps取得
+        JsonNode measuregrps = node.get("body").get("measuregrps");
 
-            connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod(method);
-            connection.connect();
-            reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        ArrayList<Double> weightList = new ArrayList<>();
+        for (JsonNode measures : measuregrps) {
+            Double value = measures.get("measures").get(0).get("value").asDouble();
+            System.out.println("value =" + String.valueOf(value));
+            //int unit = measures.get("measures").get(0).get("unit").asInt();
 
-            String jsonText = reader.readLine();
-
-            //任意の期間中のJSONデータをListに詰め替える
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode node = mapper.readValue(jsonText, JsonNode.class);
-            //updateTime取得
-            String updateTime = node.get("body").get("updatetime").toString();
-            //measuregrps取得
-            JsonNode measuregrps = node.get("body").get("measuregrps");
-
-            ArrayList<Double> weightList = new ArrayList<>();
-            for (JsonNode measures : measuregrps) {
-                Double value = measures.get("measures").get(0).get("value").asDouble();
-                System.out.println("value =" + String.valueOf(value));
-                //int unit = measures.get("measures").get(0).get("unit").asInt();
-
-                for (int unit = measures.get("measures").get(0).get("unit").asInt(); unit < 0; unit++) {
-                    value = value / 10;
-                }
-                weightList.add(value);
-                System.out.println("realValue =" + String.valueOf(value));
-                //System.out.println("unit =" + unit);
+            for (int unit = measures.get("measures").get(0).get("unit").asInt(); unit < 0; unit++) {
+                value = value / 10;
             }
-            if (weightList.size() < 0) {
-                //直近2日にかけて、体重計に乗っていない場合
-                System.out.println("体重計に乗って、現実を見よう。");
-            } else if (weightList.size() == 1) {
-                //体重データが1つの場合
-                Double current = weightList.get(0);
-                wiEnti.setCurrentWeight(String.valueOf(current));
-                setWeightIconPass(0.0);
-            } else if (weightList.size() >= 2) {
-                //体重データが2つ以上の場合
-                Double current = weightList.get(0);
-                Double past = weightList.get(1);
-                BigDecimal difference = new BigDecimal(current - past);
-                difference = difference.setScale(1, BigDecimal.ROUND_DOWN);
-                System.out.println("difference =" + String.valueOf(difference.doubleValue()));
-                wiEnti.setPastWeight(String.valueOf(past));
-                wiEnti.setCurrentWeight(String.valueOf(current));
-                setWeightIconPass(difference.doubleValue());
-            }
-
-            return jsonText;
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        } finally {
-            if (reader != null) {
-                reader.close();
-            }
-            if (connection != null) {
-                connection.disconnect();
-            }
+            weightList.add(value);
+            System.out.println("realValue =" + String.valueOf(value));
+            //System.out.println("unit =" + unit);
         }
-        return "";
+        if (weightList.size() < 0) {
+            //直近2日にかけて、体重計に乗っていない場合
+            System.out.println("体重計に乗って、現実を見よう。");
+        } else if (weightList.size() == 1) {
+            //体重データが1つの場合
+            Double current = weightList.get(0);
+            wiEnti.setCurrentWeight(String.valueOf(current));
+            setWeightIconPass(0.0);
+        } else if (weightList.size() >= 2) {
+            //体重データが2つ以上の場合
+            Double current = weightList.get(0);
+            Double past = weightList.get(1);
+            BigDecimal difference = new BigDecimal(current - past);
+            difference = difference.setScale(1, BigDecimal.ROUND_DOWN);
+            System.out.println("difference =" + String.valueOf(difference.doubleValue()));
+            wiEnti.setPastWeight(String.valueOf(past));
+            wiEnti.setCurrentWeight(String.valueOf(current));
+            setWeightIconPass(difference.doubleValue());
+        }
+
+    }
+
+    /**
+     * 範囲期日中の体重を取得・設定する
+     *
+     * @param from
+     * @param to
+     * @return
+     */
+    private ArrayList<String[]> getRangeWeightMeasures(String start, String end) {
+        ArrayList<String[]> weightList = new ArrayList<String[]>();
+
+        String jsonText = getWeightJsonData(start, end);
+        
+
+        return weightList;
     }
 
     private Map<String, String> adjustSteps(String rawDataForSteps) throws IOException {
@@ -414,25 +373,8 @@ public class Withings extends SuperOauth {
             stepList.add(activity.get("steps").asInt());
         }
 
-        int yesterday = 0;
-        int today = 0;
-        String diffrence;
         Map<String, String> stepsMap = new HashMap<>();
-        if (0 == stepList.size()) {
-            diffrence = String.valueOf(today - yesterday);
-            System.out.println("最近2日間の歩数データがありません");
-        } else if (1 >= stepList.size()) {
-            yesterday = stepList.get(0);
-            diffrence = String.valueOf(today - yesterday);
-            System.out.println("今日のデータが同期されてないっぽいです");
-        } else {
-            yesterday = stepList.get(0);
-            today = stepList.get(1);
-            diffrence = String.valueOf(today - yesterday);
-        }
-        stepsMap.put("yesterday", String.valueOf(yesterday));
-        stepsMap.put("today", String.valueOf(today));
-        stepsMap = setStepIconPass(stepsMap, diffrence);
+        stepsMap = setStepsMap(stepList);
 
         return stepsMap;
     }
@@ -446,8 +388,8 @@ public class Withings extends SuperOauth {
         Date date = new Date();
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 
-        String yesterday = getYesterDayYyyyMmDd(date, formatter);
-        String today = formatYyyyMmDd(date, formatter);
+        String yesterday = utiDate.getYesterDayYyyyMmDd(date, formatter);
+        String today = utiDate.formatYyyyMmDd(date, formatter);
 
         String rawDataForSteps = getRawDataForSteps(yesterday, today);
         Map<String, String> stepsMap = new HashMap<>();
@@ -462,36 +404,16 @@ public class Withings extends SuperOauth {
     /**
      * 範囲期日中の歩数を設定する
      *
-     * @param from
-     * @param to
+     * @param start
+     * @param end
      */
-    public void setRangeStepsMeasures(Date from, Date to) {
+    public void setRangeMeasures(Date start, Date end) {
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-        String rawDataForSteps;
-        try {
-            rawDataForSteps = getRawDataForSteps(formatYyyyMmDd(from, formatter), formatYyyyMmDd(to, formatter));
-            //任意の期間中のJSONデータをListに詰め替える
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode node = mapper.readValue(rawDataForSteps, JsonNode.class);
-            JsonNode activities = node.get("body").get("activities");
+        String from = utiDate.formatYyyyMmDd(start, formatter);
+        String to = utiDate.formatYyyyMmDd(end, formatter);
 
-            ArrayList<Integer> stepList = new ArrayList<Integer>();
-            for (JsonNode activity : activities) {
-                stepList.add(activity.get("steps").asInt());
-            }
-        } catch (IOException ex) {
-            Logger.getLogger(Withings.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    /**
-     * 範囲期日中の体重を取得・設定する
-     *
-     * @param from
-     * @param to
-     */
-    public void setRangeWeightMeasures(Date from, Date to) {
-
+        ArrayList<String[]> stepList = getRangeStepMeasures(from, to);
+        ArrayList<String[]> weightList = getRangeWeightMeasures(from, to);
     }
 
     /**
@@ -562,48 +484,132 @@ public class Withings extends SuperOauth {
         return exist;
     }
 
-    /**
-     * 今日の日付を取得する
-     *
-     * @param date
-     * @param formatted
-     * @return
-     */
-    private String formatYyyyMmDd(Date date, SimpleDateFormat formatted) {
-        return formatted.format(date);
-    }
+
+
+
 
     /**
-     * 今日の日付から、昨日の日付を取得する
+     * 範囲期日中の歩数を取得・設定する
      *
-     * @param date
-     * @param formatted
+     * @param from
+     * @param to
      * @return
      */
-    private String getYesterDayYyyyMmDd(Date date, SimpleDateFormat formatted) {
-        Calendar yesterday = Calendar.getInstance();
-        yesterday.setTime(date);
-        yesterday.add(Calendar.DAY_OF_MONTH, -1);
-        return formatted.format(yesterday.getTime());
+    private ArrayList<String[]> getRangeStepMeasures(String from, String to) {
+        ArrayList<String[]> stepList = new ArrayList<String[]>();
+        try {
+            String jsonText = getRawDataForSteps(from, to);
+            //任意の期間中のJSONデータをListに詰め替える
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode node = mapper.readValue(jsonText, JsonNode.class);
+            JsonNode activities = node.get("body").get("activities");
+
+            String[] steps = new String[2];
+            for (JsonNode activity : activities) {
+                steps[0] = activity.get("date").toString();
+                steps[1] = activity.get("steps").toString();
+                stepList.add(steps);
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(Withings.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return stepList;
     }
+
+
 
     /**
-     * UNIX時で今日と昨日の日付を取得する
+     * 昨日と今日の歩数とアイコン等を設定
      *
-     * @param utcMap
+     * @param stepList
      * @return
      */
-    private Map<String, String> getUTC_TodayAndYesterday(Map<String, String> utcMap) {
-        ZonedDateTime d = ZonedDateTime.now().plusDays(1).truncatedTo(ChronoUnit.DAYS);
-        Long nowTime = d.toEpochSecond() - 1;
-        //Long nowTime = System.currentTimeMillis() / 1000L;
-        //Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-        //今日の日付を取得（23時59分59秒まで）
-        utcMap.put("today", (nowTime).toString());
-        //昨日の日付を取得（0時0分0秒から）
-        Long pastTime = nowTime - 172799;
-        utcMap.put("yesterday", pastTime.toString());
+    private Map<String, String> setStepsMap(ArrayList<Integer> stepList) {
+        int yesterday = 0;
+        int today = 0;
+        String diffrence;
+        if (0 == stepList.size()) {
+            diffrence = String.valueOf(today - yesterday);
+            System.out.println("最近2日間の歩数データがありません");
+        } else if (1 >= stepList.size()) {
+            yesterday = stepList.get(0);
+            diffrence = String.valueOf(today - yesterday);
+            System.out.println("今日のデータが同期されてないっぽいです");
+        } else {
+            yesterday = stepList.get(0);
+            today = stepList.get(1);
+            diffrence = String.valueOf(today - yesterday);
+        }
+        Map<String, String> stepsMap = new HashMap<>();
+        stepsMap.put("yesterday", String.valueOf(yesterday));
+        stepsMap.put("today", String.valueOf(today));
+        stepsMap = setStepIconPass(stepsMap, diffrence);
 
-        return utcMap;
+        return stepsMap;
     }
+
+    private String getWeightJsonData(String from, String to) {
+        String utcFrom = utiDate.convertStartUTC(from);
+        String utcEnd = utiDate.convertEndUTC(to);
+        HttpURLConnection connection = null;
+        BufferedReader reader = null;
+        String USER_ID = session.getAttribute("userid").toString();
+        String ACCESS_TOKEN = session.getAttribute("access_token").toString();
+        String ACCESS_TOKEN_SECRET = session.getAttribute("access_token_secret").toString();
+        try {
+            this.paramsMap.clear();
+
+            paramsMap.put("action", "getmeas");
+            paramsMap.put("userid", USER_ID);
+            paramsMap.put("startdate", utcFrom);
+            paramsMap.put("enddate", utcEnd);
+            paramsMap.put("meastype", "1");
+            paramsMap.put("oauth_consumer_key", CONSUMER_KEY);
+            paramsMap.put("oauth_nonce", super.getRandomChar());
+            paramsMap.put("oauth_signature_method", "HMAC-SHA1");
+            paramsMap.put("oauth_timestamp", String.valueOf(super.getUnixTime()));
+            paramsMap.put("oauth_token", ACCESS_TOKEN);
+            paramsMap.put("oauth_version", "1.0");
+
+            this.sigData = super.makeSigData(CONSUMER_KEY, "https://wbsapi.withings.net/measure", paramsMap, method);
+            //System.out.println("this.sigData=" + this.sigData);
+            this.sigKey = super.makeSigKey(CONSUMER_SECRET, ACCESS_TOKEN_SECRET);
+
+            URL url = new URL("https://wbsapi.withings.net/measure"
+                    + "?action=" + "getmeas"
+                    + "&userid=" + URLEncode(USER_ID)
+                    + "&startdate=" + URLEncode(paramsMap.get("startdate"))
+                    + "&enddate=" + URLEncode(paramsMap.get("enddate"))
+                    + "&meastype=" + URLEncode(paramsMap.get("meastype"))
+                    + "&oauth_consumer_key=" + URLEncode(paramsMap.get("oauth_consumer_key"))
+                    + "&oauth_nonce=" + URLEncode(paramsMap.get("oauth_nonce"))
+                    + "&oauth_signature=" + URLEncode(super.makeSignature(sigKey, sigData))
+                    + "&oauth_signature_method=" + URLEncode(paramsMap.get("oauth_signature_method"))
+                    + "&oauth_timestamp=" + URLEncode(paramsMap.get("oauth_timestamp"))
+                    + "&oauth_token=" + URLEncode(ACCESS_TOKEN)
+                    + "&oauth_version=" + URLEncode(paramsMap.get("oauth_version")));
+
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod(method);
+            connection.connect();
+            reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+
+            return reader.readLine();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException ex) {
+                    Logger.getLogger(Withings.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
+        return "";
+    }
+
 }
