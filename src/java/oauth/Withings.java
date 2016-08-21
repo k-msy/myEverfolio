@@ -46,30 +46,30 @@ public class Withings extends SuperOauth {
     private static final String ACCESS_TOKEN_URL = "https://oauth.withings.com/account/access_token";
     private static final String OAUTH_CALLBACK = "http://127.0.0.1:8080/myEverfolio/faces/main/callback/top.xhtml?faces-redirect=true";
     private static final String method = "GET";
-
+    
     HttpServletRequest request = getRequest();
     HttpSession session = request.getSession(true);
-
+    
     private String sigKey;
     private String sigData;
-
+    
     @Inject
     WithingsEnti wiEnti;
     
     @Inject
     UtilDate utiDate;
-
+    
     SortedMap<String, String> paramsMap;
-
+    
     public Withings() {
         this.paramsMap = super.makeParam(CONSUMER_KEY);
         paramsMap.put("oauth_callback", URLEncode(OAUTH_CALLBACK));
         this.sigData = super.makeSigData(CONSUMER_KEY, REQUEST_TOKEN_URL, paramsMap, method);
         this.sigKey = super.makeSigKey(CONSUMER_SECRET, "");
     }
-
+    
     public void verify() {
-
+        
         try {
             getRequestToken();
             sendRedirect();
@@ -77,14 +77,14 @@ public class Withings extends SuperOauth {
             ex.printStackTrace();
         }
     }
-
+    
     private void getRequestToken() throws IOException {
         HttpURLConnection connection = null;
         BufferedReader reader = null;
         try {
             // 署名をパラメータに追加
             this.paramsMap.put("oauth_signature", super.makeSignature(sigKey, sigData));
-
+            
             URL url = new URL(REQUEST_TOKEN_URL
                     + "?oauth_callback=" + URLEncode(OAUTH_CALLBACK)
                     + "&oauth_consumer_key=" + URLEncode(paramsMap.get("oauth_consumer_key"))
@@ -93,7 +93,7 @@ public class Withings extends SuperOauth {
                     + "&oauth_signature_method=" + URLEncode(paramsMap.get("oauth_signature_method"))
                     + "&oauth_timestamp=" + URLEncode(paramsMap.get("oauth_timestamp"))
                     + "&oauth_version=" + URLEncode(paramsMap.get("oauth_version")));
-
+            
             connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod(method);
             connection.connect();
@@ -114,7 +114,7 @@ public class Withings extends SuperOauth {
             } else {
                 System.out.println("他のException");
             }
-
+            
         } finally {
             if (reader != null) {
                 reader.close();
@@ -124,12 +124,12 @@ public class Withings extends SuperOauth {
             }
         }
     }
-
+    
     private void sendRedirect() {
         //
         String REQUEST_TOKEN = session.getAttribute("request_token").toString();
         String REQUEST_TOKEN_SECRET = session.getAttribute("request_token_secret").toString();
-
+        
         SortedMap<String, String> paramsMap = new TreeMap<>();
         paramsMap.put("oauth_consumer_key", CONSUMER_KEY);
         paramsMap.put("oauth_nonce", super.getRandomChar());
@@ -137,10 +137,10 @@ public class Withings extends SuperOauth {
         paramsMap.put("oauth_token", REQUEST_TOKEN);
         paramsMap.put("oauth_signature_method", "HMAC-SHA1");
         paramsMap.put("oauth_version", "1.0");
-
+        
         this.sigData = super.makeSigData(CONSUMER_KEY, AUTHORIZE_URL, paramsMap, method);
         this.sigKey = super.makeSigKey(CONSUMER_SECRET, REQUEST_TOKEN_SECRET);
-
+        
         String redirectUrl = AUTHORIZE_URL
                 + "?oauth_consumer_key=" + URLEncode(paramsMap.get("oauth_consumer_key"))
                 + "&oauth_nonce=" + URLEncode(paramsMap.get("oauth_nonce"))
@@ -149,7 +149,7 @@ public class Withings extends SuperOauth {
                 + "&oauth_timestamp=" + URLEncode(paramsMap.get("oauth_timestamp"))
                 + "&oauth_token=" + URLEncode(paramsMap.get("oauth_token"))
                 + "&oauth_version=" + URLEncode(paramsMap.get("oauth_version"));
-
+        
         try {
             HttpServletResponse response = getResponse();
             response.sendRedirect(redirectUrl);
@@ -157,7 +157,7 @@ public class Withings extends SuperOauth {
             Logger.getLogger(Withings.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
+    
     public void getAccessToken() throws IOException {
         HttpURLConnection connection = null;
         BufferedReader reader = null;
@@ -165,20 +165,20 @@ public class Withings extends SuperOauth {
         String REQEST_TOKEN_SECRET = session.getAttribute("request_token_secret").toString();
         try {
             this.paramsMap.clear();
-
+            
             paramsMap.put("oauth_consumer_key", CONSUMER_KEY);
             paramsMap.put("oauth_nonce", super.getRandomChar());
             paramsMap.put("oauth_timestamp", String.valueOf(super.getUnixTime()));
             paramsMap.put("oauth_token", OAUTH_TOKEN);
             paramsMap.put("oauth_signature_method", "HMAC-SHA1");
             paramsMap.put("oauth_version", "1.0");
-
+            
             this.sigData = super.makeSigData(CONSUMER_KEY, ACCESS_TOKEN_URL, paramsMap, method);
             this.sigKey = super.makeSigKey(CONSUMER_SECRET, REQEST_TOKEN_SECRET);
 
             // 署名をパラメータに追加
             this.paramsMap.put("oauth_signature", super.makeSignature(sigKey, sigData));
-
+            
             URL url = new URL(ACCESS_TOKEN_URL
                     + "?oauth_consumer_key=" + URLEncode(paramsMap.get("oauth_consumer_key"))
                     + "&oauth_nonce=" + URLEncode(paramsMap.get("oauth_nonce"))
@@ -187,7 +187,7 @@ public class Withings extends SuperOauth {
                     + "&oauth_timestamp=" + URLEncode(paramsMap.get("oauth_timestamp"))
                     + "&oauth_token=" + URLEncode(OAUTH_TOKEN)
                     + "&oauth_version=" + URLEncode(paramsMap.get("oauth_version")));
-
+            
             connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod(method);
             connection.connect();
@@ -208,7 +208,7 @@ public class Withings extends SuperOauth {
             }
         }
     }
-
+    
     private String[] extractToken(String chars) {
         String[] result = null;
         try {
@@ -240,10 +240,10 @@ public class Withings extends SuperOauth {
         String ACCESS_TOKEN = session.getAttribute("access_token").toString();
         String ACCESS_TOKEN_SECRET = session.getAttribute("access_token_secret").toString();
         String USER_ID = session.getAttribute("userid").toString();
-
+        
         try {
             this.paramsMap.clear();
-
+            
             paramsMap.put("action", "getactivity");
             paramsMap.put("startdateymd", from);
             paramsMap.put("enddateymd", to);
@@ -254,11 +254,11 @@ public class Withings extends SuperOauth {
             paramsMap.put("oauth_signature_method", "HMAC-SHA1");
             paramsMap.put("oauth_version", "1.0");
             paramsMap.put("userid", USER_ID);
-
+            
             this.sigData = super.makeSigData(CONSUMER_KEY, "https://wbsapi.withings.net/v2/measure", paramsMap, method);
             //System.out.println("this.sigData=" + this.sigData);
             this.sigKey = super.makeSigKey(CONSUMER_SECRET, ACCESS_TOKEN_SECRET);
-
+            
             URL url = new URL("https://wbsapi.withings.net/v2/measure"
                     + "?action=" + "getactivity"
                     + "&userid=" + URLEncode(USER_ID)
@@ -271,15 +271,15 @@ public class Withings extends SuperOauth {
                     + "&oauth_timestamp=" + URLEncode(paramsMap.get("oauth_timestamp"))
                     + "&oauth_token=" + URLEncode(ACCESS_TOKEN)
                     + "&oauth_version=" + URLEncode(paramsMap.get("oauth_version")));
-
+            
             connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod(method);
             connection.connect();
             reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-
+            
             String text = reader.readLine();
             System.out.println("text=" + text);
-
+            
             return text;
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -293,14 +293,14 @@ public class Withings extends SuperOauth {
         }
         return "";
     }
-
+    
     public void setWeightMeasures() throws IOException {
         Date date = new Date();
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-
+        
         String yesterday = utiDate.getYesterDayYyyyMmDd(date, formatter);
         String today = utiDate.formatYyyyMmDd(date, formatter);
-
+        
         String jsonText = getWeightJsonData(yesterday, today);
 
         //任意の期間中のJSONデータをListに詰め替える
@@ -310,7 +310,7 @@ public class Withings extends SuperOauth {
         String updateTime = node.get("body").get("updatetime").toString();
         //measuregrps取得
         JsonNode measuregrps = node.get("body").get("measuregrps");
-
+        
         ArrayList<Double> weightList = new ArrayList<>();
         for (JsonNode measures : measuregrps) {
             Double value = measures.get("measures").get(0).get("value").asDouble();
@@ -343,7 +343,7 @@ public class Withings extends SuperOauth {
             wiEnti.setCurrentWeight(String.valueOf(current));
             setWeightIconPass(difference.doubleValue());
         }
-
+        
     }
 
     /**
@@ -354,28 +354,51 @@ public class Withings extends SuperOauth {
      * @return
      */
     private ArrayList<String[]> getRangeWeightMeasures(String start, String end) {
-        ArrayList<String[]> weightList = new ArrayList<String[]>();
-
-        String jsonText = getWeightJsonData(start, end);
         
+        String jsonText = getWeightJsonData(start, end);
 
+        //任意の期間中のJSONデータをListに詰め替える
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode node = null;
+        try {
+            node = mapper.readValue(jsonText, JsonNode.class);
+        } catch (IOException ex) {
+            Logger.getLogger(Withings.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        //measuregrps取得
+        JsonNode measuregrps = node.get("body").get("measuregrps");
+        
+        ArrayList<String[]> weightList = new ArrayList<String[]>();
+        for (JsonNode measures : measuregrps) {
+            String[] weights = new String[2];
+            weights[0] = utiDate.convertUtcToYyyyMmDd(measures.get("date").toString());
+            Double value = measures.get("measures").get(0).get("value").asDouble();
+            System.out.println("value =" + String.valueOf(value));
+
+            for (int unit = measures.get("measures").get(0).get("unit").asInt(); unit < 0; unit++) {
+                value = value / 10;
+            }
+            weights[1] = String.valueOf(value);
+            weightList.add(0,weights);
+        }
+        
         return weightList;
     }
-
+    
     private Map<String, String> adjustSteps(String rawDataForSteps) throws IOException {
         //任意の期間中のJSONデータをListに詰め替える
         ObjectMapper mapper = new ObjectMapper();
         JsonNode node = mapper.readValue(rawDataForSteps, JsonNode.class);
         JsonNode activities = node.get("body").get("activities");
-
+        
         ArrayList<Integer> stepList = new ArrayList<Integer>();
         for (JsonNode activity : activities) {
             stepList.add(activity.get("steps").asInt());
         }
-
+        
         Map<String, String> stepsMap = new HashMap<>();
         stepsMap = setStepsMap(stepList);
-
+        
         return stepsMap;
     }
 
@@ -387,10 +410,10 @@ public class Withings extends SuperOauth {
     public void setStepsMeasures() throws IOException {
         Date date = new Date();
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-
+        
         String yesterday = utiDate.getYesterDayYyyyMmDd(date, formatter);
         String today = utiDate.formatYyyyMmDd(date, formatter);
-
+        
         String rawDataForSteps = getRawDataForSteps(yesterday, today);
         Map<String, String> stepsMap = new HashMap<>();
         stepsMap = adjustSteps(rawDataForSteps);
@@ -411,9 +434,11 @@ public class Withings extends SuperOauth {
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
         String from = utiDate.formatYyyyMmDd(start, formatter);
         String to = utiDate.formatYyyyMmDd(end, formatter);
-
+        
         ArrayList<String[]> stepList = getRangeStepMeasures(from, to);
         ArrayList<String[]> weightList = getRangeWeightMeasures(from, to);
+        
+        System.out.println("hogehoge");
     }
 
     /**
@@ -484,10 +509,6 @@ public class Withings extends SuperOauth {
         return exist;
     }
 
-
-
-
-
     /**
      * 範囲期日中の歩数を取得・設定する
      *
@@ -503,10 +524,11 @@ public class Withings extends SuperOauth {
             ObjectMapper mapper = new ObjectMapper();
             JsonNode node = mapper.readValue(jsonText, JsonNode.class);
             JsonNode activities = node.get("body").get("activities");
-
-            String[] steps = new String[2];
+                        
             for (JsonNode activity : activities) {
-                steps[0] = activity.get("date").toString();
+                String[] steps = new String[2];
+                String[] date = activity.get("date").toString().split("\"");
+                steps[0] = date[1];
                 steps[1] = activity.get("steps").toString();
                 stepList.add(steps);
             }
@@ -515,8 +537,6 @@ public class Withings extends SuperOauth {
         }
         return stepList;
     }
-
-
 
     /**
      * 昨日と今日の歩数とアイコン等を設定
@@ -544,10 +564,10 @@ public class Withings extends SuperOauth {
         stepsMap.put("yesterday", String.valueOf(yesterday));
         stepsMap.put("today", String.valueOf(today));
         stepsMap = setStepIconPass(stepsMap, diffrence);
-
+        
         return stepsMap;
     }
-
+    
     private String getWeightJsonData(String from, String to) {
         String utcFrom = utiDate.convertStartUTC(from);
         String utcEnd = utiDate.convertEndUTC(to);
@@ -558,7 +578,7 @@ public class Withings extends SuperOauth {
         String ACCESS_TOKEN_SECRET = session.getAttribute("access_token_secret").toString();
         try {
             this.paramsMap.clear();
-
+            
             paramsMap.put("action", "getmeas");
             paramsMap.put("userid", USER_ID);
             paramsMap.put("startdate", utcFrom);
@@ -570,11 +590,11 @@ public class Withings extends SuperOauth {
             paramsMap.put("oauth_timestamp", String.valueOf(super.getUnixTime()));
             paramsMap.put("oauth_token", ACCESS_TOKEN);
             paramsMap.put("oauth_version", "1.0");
-
+            
             this.sigData = super.makeSigData(CONSUMER_KEY, "https://wbsapi.withings.net/measure", paramsMap, method);
             //System.out.println("this.sigData=" + this.sigData);
             this.sigKey = super.makeSigKey(CONSUMER_SECRET, ACCESS_TOKEN_SECRET);
-
+            
             URL url = new URL("https://wbsapi.withings.net/measure"
                     + "?action=" + "getmeas"
                     + "&userid=" + URLEncode(USER_ID)
@@ -588,12 +608,12 @@ public class Withings extends SuperOauth {
                     + "&oauth_timestamp=" + URLEncode(paramsMap.get("oauth_timestamp"))
                     + "&oauth_token=" + URLEncode(ACCESS_TOKEN)
                     + "&oauth_version=" + URLEncode(paramsMap.get("oauth_version")));
-
+            
             connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod(method);
             connection.connect();
             reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-
+            
             return reader.readLine();
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -611,5 +631,5 @@ public class Withings extends SuperOauth {
         }
         return "";
     }
-
+    
 }

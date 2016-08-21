@@ -74,4 +74,13 @@ public class UtilDate {
         System.out.println("end=" + String.valueOf(d.toEpochSecond() + 86399));
         return String.valueOf(d.toEpochSecond() + 86399);
     }
+
+    public String convertUtcToYyyyMmDd(String utc) { 
+        Date date = new Date(Long.valueOf(utc) * 1000);
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+     
+        return formatYyyyMmDd(date, formatter);
+    }
+
+
 }
