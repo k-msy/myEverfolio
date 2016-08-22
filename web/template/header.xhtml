@@ -1,0 +1,145 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+    <h:head>
+        <title>Facelet Title</title>
+    </h:head>
+    <h:body>
+        <ui:composition>
+            <h:outputStylesheet library="css" name="header.css" />
+            <script type="text/javascript">
+                window.onload = checkSession;
+                function checkSession() {
+                #{topBb.checkTokens()}
+                }
+            </script>
+
+            <nav class="navbar navbar-default">
+                <div class="container-fluid">
+                    <!-- Brand and toggle get grouped for better mobile display -->
+                    <div class="navbar-header">
+                        <!-- ハンバーガーメニューボタン -->
+                        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                            <span class="sr-only">Toggle navigation</span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button><!--// ハンバーガーメニューボタン -->
+                        <a class="navbar-brand" href="#"><span id="brandName">myEverfolio</span></a>
+                    </div>
+
+                    <!-- Collect the nav links, forms, and other content for toggling -->
+                    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                        <h:form id="headerComp">    
+                            <ul class="nav navbar-nav">
+                                <li>
+                                    <div id="dateRange">
+                                        <span id="from">
+                                            <label class="rangeLabel">from</label>
+                                            <p:calendar value="#{calendarView.from}" mode="popup" />
+                                        </span>
+                                        <span id="to">
+                                            <label class="rangeLabel">to</label>
+                                            <p:calendar value="#{calendarView.to}" mode="popup" />
+                                        </span>
+                                        <h:commandButton class="viewBtn" value="表示" action="#{headerBb.setRangeData()}" />
+                                    </div>
+                                    <h:inputHidden id="zaim_coopEventExecute" value="false" />
+                                    <h:inputHidden id="wi_coopEventExecute" value="false" />
+                                    <h:inputHidden id="todo_coopEventExecute" value="false" />
+                                </li>
+                            </ul>
+
+                            <ul class="nav navbar-nav navbar-right">
+                                <li class="dropdown">
+                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                                    <label id="dropdawn-label">設定<span class="caret"></span></label></a>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <div class="chkbox">
+                                                <h:selectBooleanCheckbox id="zaimCoop" value="#{headerBb.zaimCoopFlg}" onchange="confirmZaimCoop()" valueChangeListener="#{headerBb.zaimCoop()}" />
+                                                <h:outputLabel for="zaimCoop">zaim連携</h:outputLabel>
+                                            </div>
+                                        </li>
+                                        <li>                        
+                                            <div class="chkbox">
+                                                <h:selectBooleanCheckbox id="wiCoop" value="#{headerBb.wiCoopFlg}" onchange="confirmWiCoop()" valueChangeListener="#{headerBb.wiCoop()}" />
+                                                <h:outputLabel for="wiCoop">withings連携</h:outputLabel>
+                                            </div>
+                                        </li>
+                                        <li>                        
+                                            <div class="chkbox">
+                                                <h:selectBooleanCheckbox id="todoCoop" value="#{headerBb.todoCoopFlg}" onchange="confirmTodoCoop()" valueChangeListener="#{headerBb.todoCoop()}" />
+                                                <h:outputLabel for="todoCoop">todoist連携</h:outputLabel>
+                                            </div>
+                                        </li>
+                                        <li role="separator" class="divider"></li>
+                                        <li><h:commandLink action="#{loginBb.logout()}" class="logout" >ログアウト</h:commandLink></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </h:form>
+                    </div><!-- /.navbar-collapse -->
+                </div><!-- /.container-fluid -->
+            </nav>
+
+            <script type="text/javascript">
+                function confirmZaimCoop() {
+                    var target = document.getElementById("headerComp");
+                    target.method = "post";
+
+                    if (#{headerBb.zaimCoopFlg}) {
+                        if (confirm("連携を解除すると、データを取得できなくなっちゃうよ。それでもいいの？")) {
+                            document.getElementById("headerComp:zaim_coopEventExecute").value = true;
+                            target.submit();
+                        } else {
+                            document.getElementById("headerComp:zaim_coopEventExecute").value = false;
+                        }
+                    } else {
+                        document.getElementById("headerComp:zaim_coopEventExecute").value = true;
+                        target.submit();
+                    }
+                }
+
+                function confirmWiCoop() {
+                    var target = document.getElementById("headerComp");
+                    target.method = "post";
+
+                    if (#{headerBb.wiCoopFlg}) {
+                        if (confirm("連携を解除すると、データを取得できなくなっちゃうよ。それでもいいの？")) {
+                            document.getElementById("headerComp:wi_coopEventExecute").value = true;
+                            target.submit();
+                        } else {
+                            document.getElementById("headerComp:wi_coopEventExecute").value = false;
+                        }
+                    } else {
+                        document.getElementById("headerComp:wi_coopEventExecute").value = true;
+                        target.submit();
+                    }
+                }
+
+                function confirmTodoCoop() {
+                    var target = document.getElementById("headerComp");
+                    target.method = "post";
+
+                    if (#{headerBb.todoCoopFlg}) {
+                        if (confirm("連携を解除すると、データを取得できなくなっちゃうよ。それでもいいの？")) {
+                            document.getElementById("headerComp:todo_coopEventExecute").value = true;
+                            target.submit();
+                        } else {
+                            document.getElementById("headerComp:todo_coopEventExecute").value = false;
+                        }
+                    } else {
+                        document.getElementById("headerComp:todo_coopEventExecute").value = true;
+                        target.submit();
+                    }
+                }
+
+            </script>
+        </ui:composition>
+    </h:body>
+</html>
+

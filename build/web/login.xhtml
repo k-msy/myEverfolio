@@ -2,27 +2,30 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="http://xmlns.jcp.org/jsf/html"
-      xmlns:p="http://primefaces.org/ui"
-      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:a="http://xmlns.jcp.org/jsf/passthrough"
       lang="ja">
     <h:head>
         <title>myEverfolio | login</title>
+        <meta charset="utf8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/3.18.1/build/cssreset/cssreset-min.css" />
+        <h:outputStylesheet library="css" name="style.css" />
+        <h:outputStylesheet library="css" name="login.css" />
     </h:head>
     <h:body>
-                <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-        <h2>ろぐいん</h2>
-        <h:form>
-            ID：<h:inputText id="id" value="#{loginBb.id}" />
-            <br />
-            パスワード：<h:inputSecret id="pw" value="#{loginBb.pw}" />
-            <br />
-            <h:commandButton value="ログイン" action="#{loginBb.login()}" />
-            <h:commandButton value="クリア" action="#{loginBb.clear()}"/>
-                           
-            <h:link outcome="/register.xhtml?faces-redirect=true">まだの人はユーザー登録</h:link>
-            
-        </h:form>
-        
+        <div class="login-container">
+            <h:form>
+                <h1>myEverfolio</h1>
+
+                <h:inputText id="id" value="#{loginBb.id}" a:placeholder="ユーザID"/>
+                <h:inputSecret id="pw" value="#{loginBb.pw}" a:placeholder="パスワード" />
+                <h:commandButton value="ログイン" action="#{loginBb.login()}" class="login login-submit" />
+
+                <div class="login-help">
+                    <h:link outcome="/register.xhtml?faces-redirect=true">まだの人はユーザー登録</h:link>
+                </div> 
+            </h:form>
+        </div>
     </h:body>
 </html>
 

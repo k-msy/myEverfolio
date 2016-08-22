@@ -1,17 +1,8 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package entity;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Named;
 
-/**
- *
- * @author bpg0129
- */
 @Named("wiEnti")
 @RequestScoped
 public class WithingsEnti {
@@ -19,32 +10,28 @@ public class WithingsEnti {
     private String date = "";
     private String timezone = "";
     private int steps = 0;
-    private float distance = 0;
-    private float calories = 0;
-    private float totalcalories = 0;
-    private float elevation = 0;
+    private float distance = 0.0F;
+    private float calories = 0.0F;
+    private float totalcalories = 0.0F;
+    private float elevation = 0.0F;
     private int soft = 0;
     private int moderate = 0;
     private int intense = 0;
     private String status = "";
     private String body = "";
-
     private String yesterdaySteps = "";
     private String todaySteps = "";
     private String differenceSteps = "";
-
     private String pastWeight = "";
     private String currentWeight = "";
     private String differenceWeight = "";
-
     private String stepArrowIconPass = "";
     private String stepEmoIconPass = "";
-
     private String weightArrowIconPass = "";
     private String weightEmoIconPass = "";
 
     public String getDate() {
-        return date;
+        return this.date;
     }
 
     public void setDate(String date) {
@@ -52,7 +39,7 @@ public class WithingsEnti {
     }
 
     public String getTimezone() {
-        return timezone;
+        return this.timezone;
     }
 
     public void setTimezone(String timezone) {
@@ -60,7 +47,7 @@ public class WithingsEnti {
     }
 
     public int getSteps() {
-        return steps;
+        return this.steps;
     }
 
     public void setSteps(int steps) {
@@ -68,7 +55,7 @@ public class WithingsEnti {
     }
 
     public float getDistance() {
-        return distance;
+        return this.distance;
     }
 
     public void setDistance(float distance) {
@@ -76,7 +63,7 @@ public class WithingsEnti {
     }
 
     public float getCalories() {
-        return calories;
+        return this.calories;
     }
 
     public void setCalories(float calories) {
@@ -84,7 +71,7 @@ public class WithingsEnti {
     }
 
     public float getTotalcalories() {
-        return totalcalories;
+        return this.totalcalories;
     }
 
     public void setTotalcalories(float totalcalories) {
@@ -92,7 +79,7 @@ public class WithingsEnti {
     }
 
     public float getElevation() {
-        return elevation;
+        return this.elevation;
     }
 
     public void setElevation(float elevation) {
@@ -100,7 +87,7 @@ public class WithingsEnti {
     }
 
     public int getSoft() {
-        return soft;
+        return this.soft;
     }
 
     public void setSoft(int soft) {
@@ -108,7 +95,7 @@ public class WithingsEnti {
     }
 
     public int getModerate() {
-        return moderate;
+        return this.moderate;
     }
 
     public void setModerate(int moderate) {
@@ -116,7 +103,7 @@ public class WithingsEnti {
     }
 
     public int getIntense() {
-        return intense;
+        return this.intense;
     }
 
     public void setIntense(int intense) {
@@ -124,7 +111,7 @@ public class WithingsEnti {
     }
 
     public String getStatus() {
-        return status;
+        return this.status;
     }
 
     public void setStatus(String status) {
@@ -132,7 +119,7 @@ public class WithingsEnti {
     }
 
     public String getBody() {
-        return body;
+        return this.body;
     }
 
     public void setBody(String body) {
@@ -140,7 +127,7 @@ public class WithingsEnti {
     }
 
     public String getYesterdaySteps() {
-        return yesterdaySteps;
+        return this.yesterdaySteps;
     }
 
     public void setYesterdaySteps(String yesterdaySteps) {
@@ -148,7 +135,7 @@ public class WithingsEnti {
     }
 
     public String getTodaySteps() {
-        return todaySteps;
+        return this.todaySteps;
     }
 
     public void setTodaySteps(String todaySteps) {
@@ -156,7 +143,7 @@ public class WithingsEnti {
     }
 
     public String getDifferenceSteps() {
-        return differenceSteps;
+        return this.differenceSteps;
     }
 
     public void setDifferenceSteps(String differenceSteps) {
@@ -164,7 +151,7 @@ public class WithingsEnti {
     }
 
     public String getPastWeight() {
-        return pastWeight;
+        return this.pastWeight;
     }
 
     public void setPastWeight(String pastWeight) {
@@ -172,7 +159,7 @@ public class WithingsEnti {
     }
 
     public String getCurrentWeight() {
-        return currentWeight;
+        return this.currentWeight;
     }
 
     public void setCurrentWeight(String currentWeight) {
@@ -180,7 +167,7 @@ public class WithingsEnti {
     }
 
     public String getDifferenceWeight() {
-        return differenceWeight;
+        return this.differenceWeight;
     }
 
     public void setDifferenceWeight(String differenceWeight) {
@@ -188,7 +175,7 @@ public class WithingsEnti {
     }
 
     public String getStepArrowIconPass() {
-        return stepArrowIconPass;
+        return this.stepArrowIconPass;
     }
 
     public void setStepArrowIconPass(String stepArrowIconPass) {
@@ -196,7 +183,7 @@ public class WithingsEnti {
     }
 
     public String getStepEmoIconPass() {
-        return stepEmoIconPass;
+        return this.stepEmoIconPass;
     }
 
     public void setStepEmoIconPass(String stepEmoIconPass) {
@@ -204,7 +191,7 @@ public class WithingsEnti {
     }
 
     public String getWeightArrowIconPass() {
-        return weightArrowIconPass;
+        return this.weightArrowIconPass;
     }
 
     public void setWeightArrowIconPass(String weightArrowIconPass) {
@@ -212,11 +199,10 @@ public class WithingsEnti {
     }
 
     public String getWeightEmoIconPass() {
-        return weightEmoIconPass;
+        return this.weightEmoIconPass;
     }
 
     public void setWeightEmoIconPass(String weightEmoIconPass) {
         this.weightEmoIconPass = weightEmoIconPass;
     }
-
 }

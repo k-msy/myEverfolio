@@ -1,61 +1,53 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package bean;
 
 import entity.TogglEnti;
 import java.io.IOException;
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Date;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import oauth.Toggl;
-import oauth.Twitter;
-import oauth.Withings;
-import oauth.Zaim_origin;
+import thirdparty.Twitter;
+import thirdparty.todoist.Todoist;
+import thirdparty.toggl.Toggl;
+import thirdparty.withings.Withings;
+import thirdparty.zaim.Zaim;
+import util.UtilDate;
 import view.CalendarView;
 
-/**
- *
- * @author bpg0129
- */
 @Named
 @RequestScoped
 public class TopBb extends SuperBb implements Serializable {
 
     @Inject
     Withings wi;
-
+    
     @Inject
     Toggl toggl;
+    
     @Inject
     TogglEnti togEnti;
-    private String[] project;
+    
+    @Inject
+    Todoist todo;
     
     @Inject
     CalendarView cal;
-
+    
     @Inject
-    Zaim_origin oZaim;
-
-    public TopBb() {
-
-    }
+    UtilDate utiDate;
+    
+    @Inject
+    Zaim zaim;
 
     public String verifyTwitter() {
-
-        //MyManagedExecutorService 
         HttpServletRequest request = getRequest();
         HttpServletResponse response = getResponse();
-        //asyncExecute.start();
 
         Twitter twi = new Twitter();
         twi.verify(request, response);
@@ -63,81 +55,52 @@ public class TopBb extends SuperBb implements Serializable {
         return "";
     }
 
-    public String verifyZaim() {
-
-        return "";
-    }
-
-    public String verifyWithings() {
-        wi.verify();
-        return "";
-    }
-
-    public String getAccessToken() {
-        try {
-            wi.getAccessToken();
-        } catch (IOException ex) {
-            Logger.getLogger(TopBb.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return "";
-    }
-
     public String checkTokens() {
         HttpServletRequest request = getRequest();
         HttpSession session = request.getSession(true);
-
-        if (wi.isExistAccessToken(session)) {
+        
+        Date today = utiDate.convertLocalDateTimeToDate(LocalDate.now().atTime(0, 0, 0));
+        if (cal.getFrom() == null) {
+            cal.setFrom(today);
+        }
+        if (cal.getTo() == null) {
+            cal.setTo(today);
+        }
+        
+        //withings
+        if (this.wi.doesCooperate(session)) {
             try {
-                // 歩数データを取得・設定する
-                wi.setStepsMeasures();
-                // 体重データを取得・設定する
-                wi.setWeightMeasures();
+                this.wi.setStepsMeasures();
+                this.wi.setWeightMeasures();
             } catch (IOException ex) {
-                System.out.println("歩数・体重データ取得でなんらかの例外キャッチしたよ");
+                System.out.println("歩数・体重データ取得でなんらかの例外をキャッチしたよ");
             }
         }
-
-        // Toggl
+        
+        //toggl
         try {
-            ArrayList<String[]> tmpProjectList = toggl.getTodayDuration();
+            ArrayList<String[]> tmpProjectList = this.toggl.getTodayDuration();
 
-            long totalDurations = toggl.getTotalDurations(tmpProjectList);
-            togEnti.setTotalDurations(toggl.convertHms(totalDurations));
+            long totalDurations = this.toggl.getTotalDurations(tmpProjectList);
+            this.togEnti.setTotalDurations(this.toggl.convertHms(totalDurations));
 
-            ArrayList<String> projectList = toggl.convertProjectList(tmpProjectList);
-            togEnti.setProjectList(projectList);
+            ArrayList<String> projectList = this.toggl.convertProjectList(tmpProjectList);
+            this.togEnti.setProjectList(projectList);
         } catch (IOException e) {
             System.out.println("Toggl失敗");
             e.printStackTrace();
         }
-
-        // Zaim
-         /*
-         try {
-         oZaim.verify();
-         } catch (IOException ex) {
-         Logger.getLogger(TopBb.class.getName()).log(Level.SEVERE, null, ex);
-         }
-         */
-        return "";
-    }
-
-    public String setRangeData() {
-        //withings
-        HttpServletRequest request = getRequest();
-        HttpSession session = request.getSession(true);
-        if (wi.isExistAccessToken(session)) {
-            System.out.println("歩数・体重データを取得する準備ができてます");
-            //try {
-                // 歩数・データを取得・設定する
-                wi.setRangeMeasures(cal.getFrom(), cal.getTo());
-
-            //} catch (IOException ex) {
-            //    System.out.println("歩数・体重データ取得でなんらかの例外キャッチしたよ");
-            //}
+        
+        //zaim
+        if (this.zaim.doesCooperate(session).booleanValue()) {
+            this.zaim.setMoneyMeasures();
         }
-        //toggl
+        
+        //todoist
+        if (this.todo.doesCooperate(session)) {
+            this.todo.setTaskMeasures();
+            this.todo.syncKarmaData();
+        }
         return "";
     }
-
 }

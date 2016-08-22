@@ -2,16 +2,18 @@ package bean;
 
 import java.io.Serializable;
 import javax.enterprise.context.RequestScoped;
+import javax.faces.context.ExternalContext;
 import javax.inject.Named;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import javax.validation.constraints.NotNull;
-import oauth.Twitter;
 
 @Named
 @RequestScoped
-public class LoginBb extends SuperBb implements Serializable {
+public class LoginBb
+        extends SuperBb
+        implements Serializable {
 
     @NotNull
     private String id;
@@ -21,19 +23,13 @@ public class LoginBb extends SuperBb implements Serializable {
     public String login() {
         HttpServletRequest request = getRequest();
         try {
-            request.login(id, pw);
+            request.login(this.id, this.pw);
+            HttpSession session = request.getSession(true);
+            session.setAttribute("user_id", this.id);
         } catch (ServletException ex) {
-            facesErrorMsg("ログインできません");
+            facesErrorMsg("ログイン失敗");
             return "/loginError.xhtml?faces-redirect=true";
         }
-        //Withings withings = new Withings();
-        //withings.verifyWithings();
-        //Zaim zaim = new Zaim();
-        //zaim.verifyZaim();
-        //Twitter twi = new Twitter();
-        //twi.verifyTwitter(request, response);
-        
-        //responseComplete();
         return "/main/top.xhtml?faces-redirect=true";
     }
 
@@ -42,18 +38,17 @@ public class LoginBb extends SuperBb implements Serializable {
         HttpServletRequest request = getRequest();
         try {
             request.logout();
-        } catch (ServletException ex) {
-
+        } catch (ServletException localServletException) {
         }
         return "/login.xhtml?faces-redirect=true";
     }
 
     public void clear() {
-        id = pw = null;
+        this.id = (this.pw = null);
     }
 
     public String getId() {
-        return id;
+        return this.id;
     }
 
     public void setId(String id) {
@@ -61,11 +56,10 @@ public class LoginBb extends SuperBb implements Serializable {
     }
 
     public String getPw() {
-        return pw;
+        return this.pw;
     }
 
     public void setPw(String pw) {
         this.pw = pw;
     }
-
 }

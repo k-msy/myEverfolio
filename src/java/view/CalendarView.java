@@ -7,7 +7,7 @@ package view;
 
 import java.io.Serializable;
 import java.util.Date;
-import javax.enterprise.context.RequestScoped;
+import javax.enterprise.context.SessionScoped;
 import javax.inject.Named;
 
 /**
@@ -15,7 +15,7 @@ import javax.inject.Named;
  * @author bpg0129
  */
 @Named
-@RequestScoped
+@SessionScoped
 public class CalendarView implements Serializable {
 
     private Date from;

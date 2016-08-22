@@ -2,94 +2,72 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="http://xmlns.jcp.org/jsf/html"
-      xmlns:p="http://primefaces.org/ui"
       xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
       lang="ja">
     <h:head>
         <title>とっぷ</title>
-        <meta charset="utf8"/>
-        <link rel="stylesheet" href="css/style.css"></link>
-        <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet"></link>
     </h:head>
     <h:body>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
-        <script src="bootstrap/js/bootstrap.min.js"></script>
-        <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.js" integrity="sha256-DI6NdAhhFRnO2k51mumYeDShet3I8AKCQf/tf7ARNhI=" crossorigin="anonymous"></script>
-        <script type="text/javascript">
-            window.onload = setTimeout("checkSession()", 10000);
+        <ui:composition template="/template/mainTemplate.xhtml">
+            <ui:define name="content">
+                <h:outputStylesheet library="css" name="top.css" />
+                <div id="content">
+                    <div class="row">
+                        <div class="col-sm-12 col-xs-12 col-md-6 pull-left component">
+                            <p class="component-title">今日の勉強時間</p>
+                            <p id="toggl-total-time">#{togEnti.totalDurations}</p>
+                            <p class="breakdownTitle">内訳</p>
+                            <ui:repeat value="#{togEnti.projectList}" var="project">
+                                <li class="breakdown"><h:outputText value="#{project.toString()}" /></li>
+                            </ui:repeat>
+                        </div>
+                        <div class="col-sm-12 col-xs-12 col-md-6 pull-right component">
+                            <p class="component-title">歩数</p>
+                            <div class="withings">
+                                <p class="todaySteps">#{wiEnti.todaySteps} steps</p>
+                                <img src="#{wiEnti.stepArrowIconPass}" class="arrowIcon" />
+                                <p class="diffrence">（ #{wiEnti.differenceSteps} steps ）</p>
+                                <img src="#{wiEnti.stepEmoIconPass}" class="emoIcon" />
+                            </div>
 
-            function checkSession() {
-            #{topBb.checkTokens()}
-                //window.location.reload();
-            }
-        </script>
-        <h2>myEverfolio</h2>
-        <div id="header" class="container" style="background-color: #ccffcc">
-            <h:form>
-
-                <div id="dateRange">
-                    <h:panelGrid columns="2" cellpadding="5" class="from">
-                        from
-                        <p:calendar value="#{calendarView.from}" mode="popup" />
-                    </h:panelGrid>
-
-                    <h:panelGrid columns="2" cellpadding="5">
-                        to
-                        <p:calendar value="#{calendarView.to}" mode="popup" />
-                    </h:panelGrid>
-
-                </div>
-                <h:commandButton value="表示" action="#{topBb.setRangeData()}" />
-            </h:form>
-        </div>
-        <!--<p:accordionPanel>
-            <p:tab title="First Tab Title">
-                <h:outputText value="Lorem" />
-            </p:tab>
-            <p:tab title="Second Tab Title">
-                <h:outputText value="Ipsum" />
-            </p:tab>
-        </p:accordionPanel>-->
-        <div id="content" class="container">
-            <div class="row">
-                <div class="col-sm-6 col-xs-12 pull-left">
-                    <div id="toggl" class="well well-lg">
-                        <p>今日の勉強時間：#{togEnti.totalDurations}</p>
-                        <ui:repeat value="#{togEnti.projectList}" var="project">
-                            <li><h:outputText value="#{project.toString()}" /></li>
-                        </ui:repeat>
+                            <p class="component-title">体重</p>
+                            <div class="withings">
+                                <p class="todayWeight">#{wiEnti.currentWeight} kg</p>
+                                <img src="#{wiEnti.weightArrowIconPass}" class="arrowIcon" />
+                                <p class="diffrence">（ #{wiEnti.differenceWeight} kg ）</p>
+                                <img src="#{wiEnti.weightEmoIconPass}" class="emoIcon" />
+                            </div>
+                        </div>
+                    </div><!-- /.row -->
+                    <div class="row">
+                        <div class="col-sm-12 col-xs-12 col-md-6 pull-left component">
+                            <p class="component-title">タスク管理（todoist）</p>
+                            <div class="todoTask">
+                                <ui:repeat value="#{toEnti.taskList}" var="task">
+                                    <li class="taskRow"><img src="#{task[0]}" class="compIcon" /><p class="taskName">#{task[2]}</p></li>
+                                </ui:repeat>
+                            </div>
+                        </div>
+                        <div class="col-sm-12 col-xs-12 col-md-6 pull-right component">
+                            <p class="component-title">支出</p>
+                            <div class="moneyComponent">
+                                <p class="money">#{zaEnti.sumPayment}</p>
+                                <ui:repeat value="#{zaEnti.paymentList}" var="payment">
+                                    <li class="moneyList"><h:outputText value="#{payment.toString()}" /></li>
+                                </ui:repeat>
+                            </div>
+                            <p class="component-title">収入</p>
+                            <div class="moneyComponent">
+                                <p class="money">#{zaEnti.sumIncome}</p>
+                                <ui:repeat value="#{zaEnti.incomeList}" var="income">
+                                    <li class="moneyList"><h:outputText value="#{income.toString()}" /></li>
+                                </ui:repeat>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="col-sm-6 col-xs-12 pull-right">
-                    <div id="Withings" class="well well-lg">
-                        <p>歩数</p>
-                        <p class="todaySteps">#{wiEnti.todaySteps} steps</p>
-                        <img src="#{wiEnti.stepArrowIconPass}" class="arrowIcon" />
-                        <p class="diffrence">（ #{wiEnti.differenceSteps} steps ）</p>
-                        <img src="#{wiEnti.stepEmoIconPass}" class="emoIcon" />
-
-                        <p>体重</p>
-                        <p class="todaySteps">#{wiEnti.currentWeight} kg</p>
-                        <img src="#{wiEnti.weightArrowIconPass}" class="arrowIcon" />
-                        <p class="diffrence">（ #{wiEnti.differenceWeight} kg ）</p>
-                        <img src="#{wiEnti.weightEmoIconPass}" class="emoIcon" />
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-sm-6 col-xs-12 pull-left">
-                    <div id="evernote" class="well well-lg">
-                        <p>目標管理（Evernote）</p>
-                    </div>
-                </div>
-                <div class="col-sm-6 col-xs-12  pull-right">
-                    <div id="Zaim" class="well well-lg">
-                        <p>家計簿管理（Zaim）</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="footer" class="container" style="background-color: #ff9966">footer</div>
+            </ui:define>
+        </ui:composition>
     </h:body>
 </html>
 

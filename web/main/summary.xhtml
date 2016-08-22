@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      lang="ja">
+    <h:head>
+        <title>さまりー</title>
+        <meta charset="utf8"/>
+    </h:head>
+    <h:body>
+        <ui:composition template="/template/mainTemplate.xhtml">
+            <ui:define name="content">
+                <h:outputStylesheet library="css" name="chart.css" />
+                <script src="bootstrap/js/bootstrap.min.js"></script>
+                <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.js" integrity="sha256-DI6NdAhhFRnO2k51mumYeDShet3I8AKCQf/tf7ARNhI=" crossorigin="anonymous"></script>
+                <script type="text/javascript">
+                    function durationsFormatter() {
+
+                        this.cfg.axes.yaxis.tickOptions.formatter = function (format, value) {
+                            d = Number(value);
+                            var h = Math.floor(d / 3600);
+                            var m = Math.floor(d % 3600 / 60);
+                            return (h.toString().length === 1 ? ("0" + h) : h) + ":" + (m.toString().length === 1 ? ("0" + m) : m);
+                        };
+
+                    }
+                </script>
+                <div id="content" class="container">
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <div id="toggl" class="well well-lg">
+                                <div class="chart"><p:chart type="bar" model="#{barChart.togglModel}" /></div>
+                                <div class="chart"><p:chart type="line" model="#{lineChart.todo_model}" /></div>
+                                <div class="chart"><p:chart type="bar" model="#{barChart.wiModel}" /></div>
+                                <div class="chart"><p:chart type="line" model="#{lineChart.wi_model}" /></div>
+                                <div class="chart"><p:chart type="bar" model="#{barChart.zaimModel}" /></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </ui:define>
+        </ui:composition>
+    </h:body>
+</html>
+

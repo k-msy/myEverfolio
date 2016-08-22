@@ -1,35 +1,24 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package entity;
 
 import java.io.Serializable;
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
-/**
- *
- * @author bpg0129
- */
 @Entity
-@Table(name="FOLIO_USER")
-public class Users implements Serializable {
+@Table(name = "FOLIO_USER")
+public class Users
+        implements Serializable {
 
     @Id
     private String id;
     private String pw;
     private String name;
-
-    @OneToOne(cascade = {CascadeType.ALL})
+    @OneToOne(cascade = {javax.persistence.CascadeType.ALL})
     private UserGroup group;
 
     public Users() {
-
     }
 
     public Users(String id, String pw, String name, UserGroup group) {
@@ -40,7 +29,7 @@ public class Users implements Serializable {
     }
 
     public String getId() {
-        return id;
+        return this.id;
     }
 
     public void setId(String id) {
@@ -48,7 +37,7 @@ public class Users implements Serializable {
     }
 
     public String getPw() {
-        return pw;
+        return this.pw;
     }
 
     public void setPw(String pw) {
@@ -56,7 +45,7 @@ public class Users implements Serializable {
     }
 
     public String getName() {
-        return name;
+        return this.name;
     }
 
     public void setName(String name) {
@@ -64,12 +53,10 @@ public class Users implements Serializable {
     }
 
     public UserGroup getGroup() {
-        return group;
+        return this.group;
     }
 
     public void setGroup(UserGroup group) {
         this.group = group;
     }
-    
-    
 }

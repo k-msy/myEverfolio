@@ -1,6 +1,10 @@
 package bean;
 
 import db.RegisterDb;
+import entity.Todoist_karma;
+import entity.Token_todoist;
+import entity.Token_withings;
+import entity.Token_zaim;
 import entity.UserGroup;
 import entity.Users;
 import java.io.Serializable;
@@ -12,43 +16,48 @@ import util.SHA256Encoder;
 
 @Named
 @RequestScoped
-public class RegisterBb extends SuperBb implements Serializable {
-    
+public class RegisterBb
+        extends SuperBb
+        implements Serializable {
+
     @NotNull
     private String id;
     @NotNull
     private String pw;
     @NotNull
     private String name;
-    
     private UserGroup group;
-    
     @EJB
     RegisterDb db;
-    
-    public String create(){
-        group = new UserGroup(this.id, "user");
-        Users user = new Users(this.id, getEncodedPw(this.pw), this.name, group);
-        try{
-          db.create(user); 
-          return "/login.xhtml?faces-redirect=true";
-        }catch(Exception e){
-          super.facesErrorMsg("そのIDは既に利用されています");
+
+    public String create() {
+        this.group = new UserGroup(this.id, "user");
+        Users user = new Users(this.id, getEncodedPw(this.pw), this.name, this.group);
+        Token_withings wi_token = new Token_withings(this.id, "", "", "", "", "", "", "");
+        Token_zaim za_token = new Token_zaim(this.id, "", "", "", "", "", "");
+        Token_todoist to_token = new Token_todoist(this.id, "", "", "", "");
+        Todoist_karma karma = new Todoist_karma(this.id, "");
+        try {
+            this.db.create(user, wi_token, za_token, to_token, karma);
+
+            return "/login.xhtml?faces-redirect=true";
+        } catch (Exception e) {
+            super.facesErrorMsg("������ID���������������������������������");
         }
         return null;
     }
-    
-    public void clear(){
-        id = pw = name = null;
+
+    public void clear() {
+        this.id = (this.pw = this.name = null);
     }
-    
+
     private String getEncodedPw(String pw) {
         SHA256Encoder encoder = new SHA256Encoder();
         return encoder.encodePassword(pw);
     }
 
     public String getId() {
-        return id;
+        return this.id;
     }
 
     public void setId(String id) {
@@ -56,7 +65,7 @@ public class RegisterBb extends SuperBb implements Serializable {
     }
 
     public String getPw() {
-        return pw;
+        return this.pw;
     }
 
     public void setPw(String pw) {
@@ -64,7 +73,7 @@ public class RegisterBb extends SuperBb implements Serializable {
     }
 
     public String getName() {
-        return name;
+        return this.name;
     }
 
     public void setName(String name) {
@@ -72,7 +81,7 @@ public class RegisterBb extends SuperBb implements Serializable {
     }
 
     public UserGroup getGroup() {
-        return group;
+        return this.group;
     }
 
     public void setGroup(UserGroup group) {
@@ -80,12 +89,10 @@ public class RegisterBb extends SuperBb implements Serializable {
     }
 
     public RegisterDb getDb() {
-        return db;
+        return this.db;
     }
 
     public void setDb(RegisterDb db) {
         this.db = db;
     }
-    
-    
 }

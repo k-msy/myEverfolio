@@ -1,0 +1,144 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 2016/08/14, 17:10:41
+    Author     : bpg0129
+*/
+/*
+jsf要素に適用するcssを定義する際は、idを使わず、classを使うべきなんやろか？
+→ idは、自動生成されるから
+*/
+
+.navbar-default .navbar-nav > li > a:hover, .navbar-default .navbar-nav > li > a:focus {
+    color: #5C4283;
+}
+
+.navbar-default{
+    background: #5C4283;
+}
+
+#brandName{
+    font-size: 28px;
+    color: #fff;
+}
+
+.navbar-default .navbar-nav > li > a{
+    color: #5C4283;
+    background-color: transparent;
+}
+
+.chkbox{
+    padding: 3px 3px 3px 7px;
+}
+/* 独自チェックボックス */
+.chkbox label{
+    padding-left: 38px;
+    font-size: 15px;
+    line-height: 29px;
+    display: inline-block;
+    cursor: pointer;
+    position: relative;
+}
+.chkbox input[type=checkbox]{
+    display: none;
+}
+.chkbox label:before{
+    content: '';
+    width: 35px;
+    height: 29px;
+    display: inline-block;
+    position: absolute;
+    left: 0;
+    border: solid 1px #5C4283;
+    background-color: #fff;
+    border-radius: 9px;
+}
+.chkbox input[type=checkbox]:checked + label:before{
+    content: '\2713';
+    font-size: 19px;
+    color: #fff;
+    background-color: #5C4283;
+    border-radius: 9px;
+    text-align: center;
+}
+/* //独自チェックボックス */
+
+#dateRange{
+    display: block;
+    padding: 9px;
+}
+
+.ui-inputfield{
+    width: 130px;
+}
+
+.rangeLabel{
+    padding-right: 3px;
+    color: #5C4283;
+}
+
+#from{
+    display: inline-block;
+    padding: 3px 10px 3px 3px;
+    color: #e7e7e7;
+}
+
+#to{
+    display: inline-block;
+    padding: 3px 10px 3px 3px;
+    color: #e7e7e7;
+}
+
+.viewBtn{
+    color: black;
+    background-color: #FFFFFF;
+    //border-color: transparent;
+    border-radius: 10px;
+    width: 90px;
+    height: 25px;
+}
+
+#dropdawn-label{
+    //color: #e7e7e7;
+    cursor: pointer;
+}
+
+
+@media all and (min-width: 768px){
+    .navbar-default .navbar-nav > li > a:hover, .navbar-default .navbar-nav > li > a:focus {
+        color: #e7e7e7;
+    }
+    .navbar-default .navbar-collapse, .navbar-default .navbar-form {
+        background-color: #5C4283;
+    }
+
+    .navbar-default .navbar-nav > li > a{
+        color: #e7e7e7;
+        background-color: transparent;
+    }
+    
+    .rangeLabel{
+        color: #e7e7e7;
+    }
+}
+
+/*
+.navbar-default .navbar-nav > .open > a, .navbar-default .navbar-nav > .open > a:hover, .navbar-default .navbar-nav > .open > a:focus{
+    color: #5C4283!important;
+    background-color: #e7e7e7;
+    cursor: pointer;
+}
+*/
+/*
+#dropdawn-label:before{
+    content: "";
+    color: red!important;
+    cursor: pointer;
+}
+*/
+
+
+

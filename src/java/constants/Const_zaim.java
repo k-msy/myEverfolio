@@ -1,0 +1,20 @@
+package constants;
+
+public class Const_zaim
+{
+  public static final String CONSUMER_KEY = "b12800bf82cfe709683c9b812d35fc450efb8bc4";
+  public static final String CONSUMER_SECRET = "6a1b7a0ad40bdbd3d9b4d0a64fb757d10a606af4";
+  public static final String OAUTH_CALLBACK = "http://127.0.0.1:8080/myEverfolio/faces/main/callback/zaim";
+  public static final String REQUEST_TOKEN_URL = "https://api.zaim.net/v2/auth/request";
+  public static final String AUTHORIZE_URL = "https://auth.zaim.net/users/auth";
+  public static final String ACCESS_TOKEN_URL = "https://api.zaim.net/v2/auth/access";
+  public static final String MONEY_URL = "https://api.zaim.net/v2/home/money";
+  public static final String CATEGORY_URL = "https://api.zaim.net/v2/home/category";
+  public static final String GENRE_URL = "https://api.zaim.net/v2/genre";
+  public static final String ZA_REQUEST_TOKEN = "za_request_token";
+  public static final String ZA_REQUEST_TOKEN_SECRET = "za_request_token_secret";
+  public static final String ZA_OUTH_TOKEN = "za_oauth_token";
+  public static final String ZA_OAUTH_VERIFIER = "za_oauth_verifier";
+  public static final String ZA_ACCESS_TOKEN = "za_access_token";
+  public static final String ZA_ACCESS_TOKEN_SECRET = "za_access_token_secret";
+}
