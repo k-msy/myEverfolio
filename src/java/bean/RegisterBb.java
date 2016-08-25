@@ -16,9 +16,7 @@ import util.SHA256Encoder;
 
 @Named
 @RequestScoped
-public class RegisterBb
-        extends SuperBb
-        implements Serializable {
+public class RegisterBb extends SuperBb implements Serializable {
 
     @NotNull
     private String id;
@@ -30,6 +28,10 @@ public class RegisterBb
     @EJB
     RegisterDb db;
 
+    /**
+     * アカウント登録
+     * @return 
+     */
     public String create() {
         this.group = new UserGroup(this.id, "user");
         Users user = new Users(this.id, getEncodedPw(this.pw), this.name, this.group);

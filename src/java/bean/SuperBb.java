@@ -1,6 +1,5 @@
 package bean;
 
-import java.io.PrintStream;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -12,8 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 @Dependent
-public class SuperBb
-        implements Serializable {
+public class SuperBb implements Serializable {
 
     public ExternalContext getServlet() {
         return FacesContext.getCurrentInstance().getExternalContext();
@@ -41,7 +39,7 @@ public class SuperBb
         try {
             str = URLEncoder.encode(str, "UTF-8");
         } catch (UnsupportedEncodingException ex) {
-            System.out.println("������������������������������������������������������������");
+            System.out.println("UnsupportedEncodingException");
         }
         return str;
     }

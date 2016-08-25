@@ -92,6 +92,7 @@ public class HeaderBb extends SuperBb {
         this.todo_coopEventExecute = todo_coopEventExecute;
     }
 
+    
     public String setRangeData() {
         Date start = this.cal.getFrom();
         Date end = this.cal.getTo();

@@ -1,11 +1,12 @@
 package entity;
 
+import java.io.Serializable;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Named;
 
 @Named("wiEnti")
 @RequestScoped
-public class WithingsEnti {
+public class WithingsEnti implements Serializable {
 
     private String date = "";
     private String timezone = "";

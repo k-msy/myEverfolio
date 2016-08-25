@@ -39,7 +39,7 @@ public class BarChart
         BarChartSeries steps = new BarChartSeries();
         steps.setLabel("歩数");
         for (WithingsObject step : stepList) {
-            steps.set(step.getDateStr(), Integer.valueOf(step.getSteps()));
+            steps.set(step.getDateStr(), step.getSteps());
         }
         this.wiModel.addSeries(steps);
         this.wiModel.setTitle("歩数の遷移");
@@ -50,7 +50,7 @@ public class BarChart
         xAxis.setTickAngle(-70);
 
         Axis yAxis = this.wiModel.getAxis(AxisType.Y);
-        yAxis.setMin(Integer.valueOf(0));
+        yAxis.setMin(0);
         yAxis.setMax(this.utiChart.findMaxValForStep(stepList, "1.2"));
     }
 
@@ -59,7 +59,7 @@ public class BarChart
         BarChartSeries steps = new BarChartSeries();
         steps.setLabel("歩数");
         for (WithingsObject step : stepList) {
-            steps.set(step.getDateStr(), Integer.valueOf(step.getSteps()));
+            steps.set(step.getDateStr(), step.getSteps());
         }
         this.wiModel.addSeries(steps);
         this.wiModel.setTitle("歩数の遷移");
@@ -70,7 +70,7 @@ public class BarChart
         xAxis.setTickAngle(-70);
 
         Axis yAxis = this.wiModel.getAxis(AxisType.Y);
-        yAxis.setMin(Integer.valueOf(0));
+        yAxis.setMin(0);
         yAxis.setMax(this.utiChart.findMaxValForStep(stepList, "1.2"));
     }
 
@@ -92,7 +92,7 @@ public class BarChart
         xAxis.setTickAngle(-70);
 
         Axis yAxis = this.togglModel.getAxis(AxisType.Y);
-        yAxis.setMin(Integer.valueOf(0));
+        yAxis.setMin(0);
         yAxis.setMax(this.utiChart.findMaxValForDuration(dayDurationsList, "1.1"));
     }
 
@@ -101,7 +101,7 @@ public class BarChart
         BarChartSeries pay = new BarChartSeries();
         pay.setLabel("支出");
         for (ZaimObject payment : paymentList) {
-            pay.set(payment.getDateStr(), Integer.valueOf(payment.getPayment()));
+            pay.set(payment.getDateStr(), payment.getPayment());
         }
         this.zaimModel.addSeries(pay);
         this.zaimModel.setTitle("支出の遷移");
@@ -113,7 +113,7 @@ public class BarChart
         xAxis.setTickAngle(-70);
 
         Axis yAxis = this.zaimModel.getAxis(AxisType.Y);
-        yAxis.setMin(Integer.valueOf(0));
+        yAxis.setMin(0);
         yAxis.setMax(this.utiChart.findMaxValForZaim(paymentList, "1.1"));
     }
 

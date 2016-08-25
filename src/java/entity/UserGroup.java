@@ -7,8 +7,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "FOLIO_GROUP")
-public class UserGroup
-        implements Serializable {
+public class UserGroup implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id

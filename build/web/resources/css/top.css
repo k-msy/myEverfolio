@@ -1,0 +1,168 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 2016/08/14, 10:02:28
+    Author     : bpg0129
+*/
+
+/* スマホの設定 */
+#container{
+    width: 100%;
+    position: relative;
+    height: auto;
+}
+
+#content{
+    width: 98%;
+    height: 89%;
+    margin: 0 auto;
+}
+
+.col-lg-6{
+    height: 100%;
+}
+
+.row{
+    height: 35%;
+}
+
+.component-title{
+    margin: 15px 0px 0px 20px;
+    font-size: 17px;
+}
+
+.component{
+    display: block;
+    height: 98%;
+    padding-right: 0px!important;
+    padding-left: 0px!important;
+    padding-bottom: 15px;
+    border-radius: 20px;
+    border: solid 1px #5C4283;
+    background-color: #F5F5F5;
+    margin-bottom: 7px;
+    overflow: scroll;
+}
+
+#toggl-total-time{
+    text-align: center;
+    font-size: 10vw;
+}
+
+.breakdownTitle{
+    margin: 20px 0px 10px 15px;
+    font-size: 15px;
+}
+
+.breakdown{
+    text-align: center;
+}
+
+.withings{
+    display: block;
+    text-align: center;
+}
+
+.todaySteps{
+    font-size: 8vw;
+    display: inline-block;
+    margin: 0px 0px 0px 40px;
+} 
+
+.todayWeight{
+    font-size: 8vw;
+    display: inline-block;
+    margin: 0px 0px 0px 40px;
+}
+
+.diffrence{
+    font-size: 2vw;
+    display: inline-block;
+    margin: 0px 0px 0px 0px;
+}
+
+.arrowIcon{
+    width: 8%;
+    display: inline-block;
+    margin: 0px 0px 19px 10px;
+}
+.emoIcon{
+    width: 7%;
+    display: inline-block;
+    margin: 0px 0px 3px 0px;
+}
+
+.moneyComponent{
+    display: block;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.money{
+    font-size: 8vw;
+    display: inline-block;
+}
+
+.moneyList{
+    display: inline-block;
+    vertical-align: top;
+    margin: 0px 0px 0px 55px;
+}
+
+.todoTask{
+    display: block;
+}
+
+.taskRow{
+    margin: 15px 0px 15px 20px;
+}
+
+.compIcon{
+    width: 7%;
+    display: inline-block;
+    vertical-align: text-bottom;
+}
+
+.taskName{
+    display: inline-block;
+    font-size: 6.2vw;
+    margin-left: 18px;
+}
+
+/* タブレットの設定 */
+@media all and (min-width: 750px){
+    .row{
+        height: 40%;
+    }
+
+    #toggl-total-time, .todaySteps, .todayWeight, .taskName, .money{
+        font-size: 6.2vw;
+    }
+}
+
+/* PCの設定 */
+@media all and (min-width: 991px){
+    #container{
+        height: 100%;
+    }
+
+    .component{
+        width: 49.7%!important;
+    }
+
+    .component-title{
+        font-size: 20px;
+    }
+
+    .row{
+        height: 50%;
+    }
+
+    #toggl-total-time, .todaySteps, .todayWeight, .taskName, .money{
+        font-size: 3.3vw;
+    }
+}
+

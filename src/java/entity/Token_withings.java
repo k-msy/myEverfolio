@@ -10,8 +10,7 @@ import javax.validation.constraints.NotNull;
 @RequestScoped
 @Entity
 @Table(name = "TOKEN_WITHINGS")
-public class Token_withings
-        implements Serializable {
+public class Token_withings implements Serializable {
 
     @Id
     @NotNull

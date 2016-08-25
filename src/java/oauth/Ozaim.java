@@ -4,7 +4,6 @@ import db.ZaimDb;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.SortedMap;
@@ -18,8 +17,7 @@ import javax.servlet.http.HttpSession;
 import thirdparty.zaim.Zaim;
 
 @RequestScoped
-public class Ozaim
-        extends SuperOauth {
+public class Ozaim extends SuperOauth {
 
     private static final String method = "GET";
     HttpServletRequest request = getRequest();
@@ -46,15 +44,12 @@ public class Ozaim
 
                 super.sendRedirect("b12800bf82cfe709683c9b812d35fc450efb8bc4", "6a1b7a0ad40bdbd3d9b4d0a64fb757d10a606af4", request_token, request_token_secret, "https://auth.zaim.net/users/auth", "GET");
             } else {
-                System.out.println("zaim���������������������������������������");
+                System.out.println("zaimリクエストトークン取得失敗");
             }
         } catch (IOException ex) {
             Logger.getLogger(Zaim.class.getName()).log(Level.SEVERE, null, ex);
             throw ex;
         }
-        String sigData;
-        String sigKey;
-        SortedMap<String, String> paramsMap;
     }
 
     public void getAccessToken()
@@ -107,8 +102,6 @@ public class Ozaim
                 connection.disconnect();
             }
         }
-        String sigData;
-        String sigKey;
     }
 
     public boolean isCallback(HttpSession session) {

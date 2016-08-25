@@ -4,7 +4,6 @@ import db.WithingsDb;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.SortedMap;
@@ -17,8 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 @RequestScoped
-public class Owithings
-        extends SuperOauth {
+public class Owithings extends SuperOauth {
 
     @EJB
     WithingsDb db;
@@ -108,7 +106,7 @@ public class Owithings
 
                 super.sendRedirect("f1e9bebd38c1bf97b7c58bf2f5844c9bf7c38ec50254124d4f43b8582f0f", "c17484ff357d801897828f674bb6175b4f94340516ce5bb4922def7e035", request_token, request_token_secret, "https://oauth.withings.com/account/authorize", "GET");
             } else {
-                System.out.println("withings���������������������������������������");
+                System.out.println("withingsリクエストトークン失敗");
             }
         } catch (IOException ex) {
             ex.printStackTrace();

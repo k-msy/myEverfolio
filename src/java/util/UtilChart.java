@@ -28,10 +28,10 @@ public class UtilChart {
             BigDecimal max = (BigDecimal) list.get(0);
             max = max.multiply(timesConst);
             max = max.setScale(0, RoundingMode.CEILING);
-            return Integer.valueOf(roundVal(max.intValue()));
+            return roundVal(max.intValue());
         }
         BigDecimal max = new BigDecimal("0.0");
-        return Integer.valueOf(max.intValue());
+        return max.intValue();
     }
 
     public Object findMinVal(ArrayList<String[]> valueList) {
@@ -46,10 +46,10 @@ public class UtilChart {
             BigDecimal min = (BigDecimal) list.get(0);
             min = min.multiply(timesConst);
             min = min.setScale(0, RoundingMode.CEILING);
-            return Integer.valueOf(roundVal(min.intValue()));
+            return roundVal(min.intValue());
         }
         BigDecimal min = new BigDecimal("0.0");
-        return Integer.valueOf(min.intValue());
+        return min.intValue();
     }
 
     public Object findMaxValForStep(ArrayList<WithingsObject> stepList, String constVal) {
@@ -65,13 +65,13 @@ public class UtilChart {
         BigDecimal max = (BigDecimal) list.get(0);
         max = max.multiply(timesConst);
         max = max.setScale(0, RoundingMode.CEILING);
-        return Integer.valueOf(roundVal(max.intValue()));
+        return roundVal(max.intValue());
     }
 
     public Object findMinValForWeight(ArrayList<WithingsObject> weightList, String constVal) {
         ArrayList<BigDecimal> list = new ArrayList();
         for (WithingsObject weight : weightList) {
-            list.add(new BigDecimal(weight.getWeight().doubleValue()));
+            list.add(new BigDecimal(weight.getWeight()));
         }
         Collections.sort(list);
         BigDecimal min = new BigDecimal("0.0");
@@ -84,13 +84,13 @@ public class UtilChart {
         }
         min = min.multiply(timesConst);
         min = min.setScale(0, RoundingMode.CEILING);
-        return Integer.valueOf(roundVal(min.intValue()));
+        return roundVal(min.intValue());
     }
 
     public Object findMaxValForWeight(ArrayList<WithingsObject> weightList, String constVal) {
         ArrayList<BigDecimal> list = new ArrayList();
         for (WithingsObject weight : weightList) {
-            list.add(new BigDecimal(weight.getWeight().doubleValue()));
+            list.add(new BigDecimal(weight.getWeight()));
         }
         Collections.sort(list);
         Collections.reverse(list);
@@ -100,7 +100,7 @@ public class UtilChart {
         BigDecimal max = (BigDecimal) list.get(0);
         max = max.multiply(timesConst);
         max = max.setScale(0, RoundingMode.CEILING);
-        return Integer.valueOf(roundVal(max.intValue()));
+        return roundVal(max.intValue());
     }
 
     public int roundVal(int intVal) {
@@ -119,7 +119,7 @@ public class UtilChart {
     public Object findMaxValForDuration(ArrayList<TogglObject> dayDurationsList, String constVal) {
         ArrayList<BigDecimal> list = new ArrayList();
         for (TogglObject obj : dayDurationsList) {
-            list.add(new BigDecimal(obj.getDuration().longValue()));
+            list.add(new BigDecimal(obj.getDuration()));
         }
         Collections.sort(list);
         Collections.reverse(list);
@@ -129,7 +129,7 @@ public class UtilChart {
         BigDecimal max = (BigDecimal) list.get(0);
         max = max.multiply(timesConst);
         max = max.setScale(0, RoundingMode.CEILING);
-        return Integer.valueOf(roundVal(max.intValue()));
+        return roundVal(max.intValue());
     }
 
     public Object findMaxValForZaim(ArrayList<ZaimObject> paymentList, String constVal) {
@@ -145,7 +145,7 @@ public class UtilChart {
         BigDecimal max = (BigDecimal) list.get(0);
         max = max.multiply(timesConst);
         max = max.setScale(0, RoundingMode.CEILING);
-        return Integer.valueOf(roundVal(max.intValue()));
+        return roundVal(max.intValue());
     }
 
     public Object findMinValForKarma(ArrayList<TodoistObject> karmaList, String constVal) {
@@ -161,7 +161,7 @@ public class UtilChart {
         BigDecimal max = (BigDecimal) list.get(0);
         max = max.multiply(timesConst);
         max = max.setScale(0, RoundingMode.CEILING);
-        return Integer.valueOf(roundVal(max.intValue()));
+        return roundVal(max.intValue());
     }
 
     public Object findMaxValForMarma(ArrayList<TodoistObject> karmaList, String constVal) {
@@ -177,6 +177,6 @@ public class UtilChart {
         BigDecimal max = (BigDecimal) list.get(0);
         max = max.multiply(timesConst);
         max = max.setScale(0, RoundingMode.CEILING);
-        return Integer.valueOf(roundVal(max.intValue()));
+        return roundVal(max.intValue());
     }
 }

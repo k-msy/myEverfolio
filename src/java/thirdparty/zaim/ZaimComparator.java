@@ -2,8 +2,7 @@ package thirdparty.zaim;
 
 import java.util.Comparator;
 
-public class ZaimComparator
-        implements Comparator<ZaimObject> {
+public class ZaimComparator implements Comparator<ZaimObject> {
 
     @Override
     public int compare(ZaimObject o1, ZaimObject o2) {

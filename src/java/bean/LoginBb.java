@@ -2,7 +2,6 @@ package bean;
 
 import java.io.Serializable;
 import javax.enterprise.context.RequestScoped;
-import javax.faces.context.ExternalContext;
 import javax.inject.Named;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -11,9 +10,7 @@ import javax.validation.constraints.NotNull;
 
 @Named
 @RequestScoped
-public class LoginBb
-        extends SuperBb
-        implements Serializable {
+public class LoginBb extends SuperBb implements Serializable {
 
     @NotNull
     private String id;

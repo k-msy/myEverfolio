@@ -1,12 +1,13 @@
 package entity;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Named;
 
 @Named("zaEnti")
 @RequestScoped
-public class ZaimEnti {
+public class ZaimEnti implements Serializable {
 
     private ArrayList<String> paymentList;
     private ArrayList<String> incomeList;

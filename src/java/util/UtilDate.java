@@ -1,6 +1,5 @@
 package util;
 
-import java.io.PrintStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -62,7 +61,7 @@ public class UtilDate {
     }
 
     public String convertUtcToYyyyMmDd(String utc) {
-        Date date = new Date(Long.valueOf(utc).longValue() * 1000L);
+        Date date = new Date(Long.valueOf(utc) * 1000L);
 
         return formatYyyyMmDd(date);
     }

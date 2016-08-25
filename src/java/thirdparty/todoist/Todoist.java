@@ -12,8 +12,6 @@ import entity.Token_todoist;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
@@ -40,8 +38,7 @@ import util.UtilLogic;
 import view.chart.LineChart;
 
 @RequestScoped
-public class Todoist
-        extends SuperOauth {
+public class Todoist extends SuperOauth {
 
     private static final String method = "GET";
     HttpServletRequest request = getRequest();
@@ -226,7 +223,7 @@ public class Todoist
                 String[] dateStr = date.get("date").toString().split("\"");
                 dateList.add(dateStr[1]);
             }
-            
+
             ArrayList<String> karmaList = new ArrayList();
             for (JsonNode karma : karmaNode) {
                 String karmaStr = karma.get("new_karma").toString();
@@ -287,42 +284,6 @@ public class Todoist
         return updatedJson;
     }
 
-    private int findMinVal(Map<String, String> storedKarmaMap) {
-        ArrayList<BigDecimal> list = new ArrayList();
-        for (String karmaDate : storedKarmaMap.keySet()) {
-            list.add(new BigDecimal((String) storedKarmaMap.get(karmaDate)));
-        }
-        Collections.sort(list);
-        BigDecimal minVal = new BigDecimal("0");
-        if (((BigDecimal) list.get(0)).equals(minVal)) {
-            minVal = new BigDecimal("0");
-            return minVal.intValue();
-        }
-        BigDecimal timesConst = new BigDecimal("0.9");
-        minVal = ((BigDecimal) list.get(0)).multiply(timesConst);
-        minVal = minVal.setScale(0, RoundingMode.FLOOR);
-        return this.utiChart.roundVal(minVal.intValue());
-    }
-
-    private int findMaxVal(Map<String, String> storedKarmaMap) {
-        ArrayList<BigDecimal> list = new ArrayList();
-        for (String val : storedKarmaMap.values()) {
-            list.add(new BigDecimal(val));
-        }
-        Collections.sort(list);
-        Collections.reverse(list);
-
-        BigDecimal timesConst = new BigDecimal("1.075");
-        if (!storedKarmaMap.isEmpty()) {
-            BigDecimal max = (BigDecimal) list.get(0);
-            max = max.multiply(timesConst);
-            max = max.setScale(0, RoundingMode.CEILING);
-            return this.utiChart.roundVal(max.intValue());
-        }
-        BigDecimal max = new BigDecimal("0.0");
-        return max.intValue();
-    }
-
     private void injectZeroDayData(ArrayList<String> dayList, Map<String, String> storedKarmaMap) {
         for (String date : dayList) {
             if (!storedKarmaMap.containsKey(date)) {
@@ -363,7 +324,7 @@ public class Todoist
             }
             String end = findEndDate(i - 1, karmaList);
             TodoistObject obj = new TodoistObject();
-            obj.dateStr = (start + "���" + end);
+            obj.dateStr = (start + "〜" + end);
             obj.karma = extKarma;
             obj.utcDate = utcDate;
             sumList.add(obj);

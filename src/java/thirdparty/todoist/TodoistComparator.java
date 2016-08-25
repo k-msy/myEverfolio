@@ -2,8 +2,7 @@ package thirdparty.todoist;
 
 import java.util.Comparator;
 
-public class TodoistComparator
-        implements Comparator<TodoistObject> {
+public class TodoistComparator implements Comparator<TodoistObject> {
 
     @Override
     public int compare(TodoistObject o1, TodoistObject o2) {

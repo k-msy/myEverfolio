@@ -10,9 +10,7 @@ import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import thirdparty.Twitter;
 import thirdparty.todoist.Todoist;
 import thirdparty.toggl.Toggl;
 import thirdparty.withings.Withings;
@@ -26,39 +24,29 @@ public class TopBb extends SuperBb implements Serializable {
 
     @Inject
     Withings wi;
-    
+
     @Inject
     Toggl toggl;
-    
+
     @Inject
     TogglEnti togEnti;
-    
+
     @Inject
     Todoist todo;
-    
+
     @Inject
     CalendarView cal;
-    
+
     @Inject
     UtilDate utiDate;
-    
+
     @Inject
     Zaim zaim;
-
-    public String verifyTwitter() {
-        HttpServletRequest request = getRequest();
-        HttpServletResponse response = getResponse();
-
-        Twitter twi = new Twitter();
-        twi.verify(request, response);
-
-        return "";
-    }
 
     public String checkTokens() {
         HttpServletRequest request = getRequest();
         HttpSession session = request.getSession(true);
-        
+
         Date today = utiDate.convertLocalDateTimeToDate(LocalDate.now().atTime(0, 0, 0));
         if (cal.getFrom() == null) {
             cal.setFrom(today);
@@ -66,7 +54,7 @@ public class TopBb extends SuperBb implements Serializable {
         if (cal.getTo() == null) {
             cal.setTo(today);
         }
-        
+
         //withings
         if (this.wi.doesCooperate(session)) {
             try {
@@ -76,7 +64,7 @@ public class TopBb extends SuperBb implements Serializable {
                 System.out.println("歩数・体重データ取得でなんらかの例外をキャッチしたよ");
             }
         }
-        
+
         //toggl
         try {
             ArrayList<String[]> tmpProjectList = this.toggl.getTodayDuration();
@@ -90,12 +78,12 @@ public class TopBb extends SuperBb implements Serializable {
             System.out.println("Toggl失敗");
             e.printStackTrace();
         }
-        
+
         //zaim
-        if (this.zaim.doesCooperate(session).booleanValue()) {
+        if (this.zaim.doesCooperate(session)) {
             this.zaim.setMoneyMeasures();
         }
-        
+
         //todoist
         if (this.todo.doesCooperate(session)) {
             this.todo.setTaskMeasures();

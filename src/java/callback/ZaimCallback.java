@@ -1,7 +1,6 @@
 package callback;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import javax.ejb.TransactionManagement;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -10,8 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 @TransactionManagement
-public class ZaimCallback
-  extends HttpServlet
+public class ZaimCallback extends HttpServlet
 {
   public void doGet(HttpServletRequest request, HttpServletResponse response)
     throws IOException, ServletException
@@ -25,7 +23,7 @@ public class ZaimCallback
     }
     catch (IOException ex)
     {
-      System.out.println("zaim���������������������������������������");
+      System.out.println("zaim認証からのリダイレクト失敗");
     }
   }
 }

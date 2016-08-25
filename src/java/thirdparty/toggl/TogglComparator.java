@@ -2,8 +2,7 @@ package thirdparty.toggl;
 
 import java.util.Comparator;
 
-public class TogglComparator
-        implements Comparator<TogglObject> {
+public class TogglComparator implements Comparator<TogglObject> {
 
     @Override
     public int compare(TogglObject o1, TogglObject o2) {

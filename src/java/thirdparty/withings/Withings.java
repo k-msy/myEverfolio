@@ -6,20 +6,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import db.WithingsDb;
 import entity.Token_withings;
 import entity.WithingsEnti;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
+import java.io.*;
 import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ejb.EJB;
@@ -34,8 +25,7 @@ import view.chart.BarChart;
 import view.chart.LineChart;
 
 @RequestScoped
-public class Withings
-        extends SuperOauth {
+public class Withings extends SuperOauth {
 
     private static final String method = "GET";
     HttpServletRequest request = getRequest();
@@ -124,29 +114,29 @@ public class Withings
 
         ArrayList<Double> weightList = new ArrayList();
         for (JsonNode measures : measuregrps) {
-            Double value = Double.valueOf(measures.get("measures").get(0).get("value").asDouble());
+            Double value = measures.get("measures").get(0).get("value").asDouble();
             System.out.println("value =" + String.valueOf(value));
             for (int unit = measures.get("measures").get(0).get("unit").asInt(); unit < 0; unit++) {
-                value = Double.valueOf(value.doubleValue() / 10.0D);
+                value = value / 10.0D;
             }
             weightList.add(value);
             System.out.println("realValue =" + String.valueOf(value));
         }
         if (weightList.size() < 0) {
-            System.out.println("���������������������������������������������");
+            System.out.println("体重計に乗りましょう");
         } else if (weightList.size() == 1) {
             Double current = (Double) weightList.get(0);
             this.wiEnti.setCurrentWeight(String.valueOf(current));
-            setWeightIconPass(Double.valueOf(0.0D));
+            setWeightIconPass(0.0D);
         } else if (weightList.size() >= 2) {
             Double current = (Double) weightList.get(0);
             Double past = (Double) weightList.get(1);
-            BigDecimal difference = new BigDecimal(current.doubleValue() - past.doubleValue());
+            BigDecimal difference = new BigDecimal(current - past);
             difference = difference.setScale(1, 1);
             System.out.println("difference =" + String.valueOf(difference.doubleValue()));
             this.wiEnti.setPastWeight(String.valueOf(past));
             this.wiEnti.setCurrentWeight(String.valueOf(current));
-            setWeightIconPass(Double.valueOf(difference.doubleValue()));
+            setWeightIconPass(difference.doubleValue());
         }
     }
 
@@ -173,9 +163,9 @@ public class Withings
                 WithingsObject wiObj = new WithingsObject();
                 wiObj.utcDate = measures.get("date").longValue();
                 wiObj.dateStr = date;
-                Double value = Double.valueOf(measures.get("measures").get(0).get("value").asDouble());
+                Double value = measures.get("measures").get(0).get("value").asDouble();
                 for (int unit = measures.get("measures").get(0).get("unit").asInt(); unit < 0; unit++) {
-                    value = Double.valueOf(value.doubleValue() / 10.0D);
+                    value = value / 10.0D;
                 }
                 wiObj.weight = value;
                 weightList.add(wiObj);
@@ -191,15 +181,14 @@ public class Withings
         return weightList;
     }
 
-    private Map<String, String> adjustSteps(String rawDataForSteps)
-            throws IOException {
+    private Map<String, String> adjustSteps(String rawDataForSteps) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode node = (JsonNode) mapper.readValue(rawDataForSteps, JsonNode.class);
         JsonNode activities = node.get("body").get("activities");
 
         ArrayList<Integer> stepList = new ArrayList();
         for (JsonNode activity : activities) {
-            stepList.add(Integer.valueOf(activity.get("steps").asInt()));
+            stepList.add(activity.get("steps").asInt());
         }
         Object stepsMap = new HashMap();
         stepsMap = setStepsMap(stepList);
@@ -207,8 +196,7 @@ public class Withings
         return (Map<String, String>) stepsMap;
     }
 
-    public void setStepsMeasures()
-            throws IOException {
+    public void setStepsMeasures() throws IOException {
         String yesterday = this.utiDate.getYesterDayYyyyMmDd();
         String today = this.utiDate.getTodayYyyyMmDd();
 
@@ -235,7 +223,7 @@ public class Withings
     }
 
     private Map<String, String> setStepIconPass(Map<String, String> stepsMap, String diffrence) {
-        int diff = Integer.valueOf(diffrence).intValue();
+        int diff = Integer.valueOf(diffrence);
         if (0 > diff) {
             stepsMap.put("difference", diffrence);
             stepsMap.put("arrowIcon", "../img/negative_down.png");
@@ -253,15 +241,15 @@ public class Withings
     }
 
     private void setWeightIconPass(Double diff) {
-        if (0.0D > diff.doubleValue()) {
+        if (0.0D > diff) {
             this.wiEnti.setDifferenceWeight(String.valueOf(diff));
             this.wiEnti.setWeightArrowIconPass("../img/positive_down.png");
             this.wiEnti.setWeightEmoIconPass("../img/good.png");
-        } else if (0.0D == diff.doubleValue()) {
+        } else if (0.0D != diff) if (0.0D >= diff) {
             this.wiEnti.setDifferenceWeight(String.valueOf(diff));
             this.wiEnti.setWeightArrowIconPass("../img/neutralArrow.png");
             this.wiEnti.setWeightEmoIconPass("../img/neutralEmo.png");
-        } else if (0.0D < diff.doubleValue()) {
+        } else {
             this.wiEnti.setDifferenceWeight("+" + String.valueOf(diff));
             this.wiEnti.setWeightArrowIconPass("../img/negative_up.png");
             this.wiEnti.setWeightEmoIconPass("../img/bad.png");
@@ -292,7 +280,7 @@ public class Withings
                 String[] date = activity.get("date").toString().split("\"");
                 wiObj.dateStr = date[1].substring(5);
                 wiObj.steps = activity.get("steps").asInt();
-                wiObj.utcDate = Long.valueOf(this.utiDate.convertStartUTC(date[1])).longValue();
+                wiObj.utcDate = Long.valueOf(this.utiDate.convertStartUTC(date[1]));
                 stepList.add(wiObj);
             }
             injectZeroDayData(dayList, stepList);
@@ -302,7 +290,7 @@ public class Withings
             } else if (dayCount > 30) {
                 stepList = summarizeWeekStep(stepList);
             }
-            System.out.println("������������������������");
+            System.out.println("サマライズ終了");
         } catch (IOException ex) {
             Logger.getLogger(Withings.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -315,14 +303,14 @@ public class Withings
         String diffrence;
         if (0 == stepList.size()) {
             diffrence = String.valueOf(today - yesterday);
-            System.out.println("������2������������������������������������������");
+            System.out.println("最近2日間の歩数データがありません");
         } else if (1 >= stepList.size()) {
-            yesterday = ((Integer) stepList.get(0)).intValue();
+            yesterday = (stepList.get(0));
             diffrence = String.valueOf(today - yesterday);
-            System.out.println("���������������������������������������������������������");
+            System.out.println("今日のデータが同期されていない可能性があります");
         } else {
-            yesterday = ((Integer) stepList.get(0)).intValue();
-            today = ((Integer) stepList.get(1)).intValue();
+            yesterday = (stepList.get(0));
+            today = (stepList.get(1));
             diffrence = String.valueOf(today - yesterday);
         }
         Map<String, String> stepsMap = new HashMap();
@@ -430,7 +418,7 @@ public class Withings
             }
             String end = findEndDate(i - 1, stepList);
             WithingsObject wiObj = new WithingsObject();
-            wiObj.dateStr = (start + "���" + end);
+            wiObj.dateStr = (start + "〜" + end);
             wiObj.steps = sum;
             wiObj.utcDate = utcDate;
             sumStepList.add(wiObj);
@@ -483,10 +471,11 @@ public class Withings
                     if (month.equals(((WithingsObject) sumWeightList.get(i)).dateStr)) {
                         sumFlg = true;
                         Double extWeight = weight.weight;
-                        if (!extWeight.equals(Double.valueOf(0.0D))) {
-                            if (((WithingsObject) sumWeightList.get(i)).weight.equals(Double.valueOf(0.0D))) {
+                        if (!extWeight.equals(0.0D)) {
+                            if (((WithingsObject) sumWeightList.get(i)).weight.equals(0.0D)) {
                                 ((WithingsObject) sumWeightList.get(i)).weight = extWeight;
-                            } else if (extWeight.doubleValue() < ((WithingsObject) sumWeightList.get(i)).weight.doubleValue()) {
+                            } else if (extWeight >= ((WithingsObject) sumWeightList.get(i)).weight) {
+                            } else {
                                 ((WithingsObject) sumWeightList.get(i)).weight = extWeight;
                             }
                         }
@@ -509,16 +498,16 @@ public class Withings
         for (int i = 0; i < weightList.size(); i++) {
             String start = ((WithingsObject) weightList.get(i)).dateStr;
             long utcDate = ((WithingsObject) weightList.get(i)).utcDate;
-            Double extWeight = Double.valueOf(0.0D);
+            Double extWeight = 0.0D;
             for (int j = 0; j < 7; j++) {
                 if (i >= weightList.size()) {
                     break;
                 }
                 Double weight = ((WithingsObject) weightList.get(i)).weight;
-                if (!weight.equals(Double.valueOf(0.0D))) {
-                    if (extWeight.equals(Double.valueOf(0.0D))) {
+                if (!weight.equals(0.0D)) {
+                    if (extWeight.equals(0.0D)) {
                         extWeight = weight;
-                    } else if (weight.doubleValue() < extWeight.doubleValue()) {
+                    } else if (weight < extWeight) {
                         extWeight = weight;
                     }
                 }
@@ -526,7 +515,7 @@ public class Withings
             }
             String end = findEndDate(i - 1, weightList);
             WithingsObject wiObj = new WithingsObject();
-            wiObj.dateStr = (start + "���" + end);
+            wiObj.dateStr = (start + "〜" + end);
             wiObj.weight = extWeight;
             wiObj.utcDate = utcDate;
             sumWeightList.add(wiObj);
@@ -542,7 +531,7 @@ public class Withings
                 day = (String) localIterator.next();
                 WithingsObject wiObj = new WithingsObject();
                 wiObj.dateStr = day;
-                wiObj.utcDate = Long.valueOf(this.utiDate.convertStartUTC(day)).longValue();
+                wiObj.utcDate = Long.valueOf(this.utiDate.convertStartUTC(day));
                 list.add(wiObj);
             }
         } else {
@@ -556,7 +545,7 @@ public class Withings
                 if (index < 0) {
                     WithingsObject wiObj = new WithingsObject();
                     wiObj.dateStr = ((String) dayList.get(i)).substring(5);
-                    wiObj.utcDate = Long.valueOf(this.utiDate.convertStartUTC((String) dayList.get(i))).longValue();
+                    wiObj.utcDate = Long.valueOf(this.utiDate.convertStartUTC((String) dayList.get(i)));
                     list.add(wiObj);
                 }
             }

@@ -1,20 +1,9 @@
 package thirdparty.toggl;
 
-import ch.simas.jtoggl.Client;
-import ch.simas.jtoggl.JToggl;
-import ch.simas.jtoggl.Project;
-import ch.simas.jtoggl.Task;
-import ch.simas.jtoggl.TimeEntry;
-import ch.simas.jtoggl.Workspace;
+import ch.simas.jtoggl.*;
 import java.io.IOException;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
+import java.time.*;
+import java.util.*;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import oauth.SuperOauth;
@@ -23,8 +12,7 @@ import util.UtilLogic;
 import view.chart.BarChart;
 
 @RequestScoped
-public class Toggl
-        extends SuperOauth {
+public class Toggl extends SuperOauth {
 
     private static JToggl jToggl;
     private static TimeEntry timeEntry;
@@ -71,7 +59,7 @@ public class Toggl
                 if (0 <= samePidIndex) {
                     if (0L < timeEntry.getDuration()) {
                         String[] tmpProject = (String[]) projectList.get(samePidIndex);
-                        tmpProject[2] = String.valueOf(Long.valueOf(tmpProject[2]).longValue() + timeEntry.getDuration());
+                        tmpProject[2] = String.valueOf(Long.valueOf(tmpProject[2]) + timeEntry.getDuration());
                         projectList.set(samePidIndex, tmpProject);
                     }
                 } else if (0L < timeEntry.getDuration()) {
@@ -117,7 +105,7 @@ public class Toggl
     public long getTotalDurations(ArrayList<String[]> projectList) {
         long totalDurations = 0L;
         for (String[] project : projectList) {
-            totalDurations += Long.valueOf(project[2]).longValue();
+            totalDurations += Long.valueOf(project[2]);
         }
         return totalDurations;
     }
@@ -138,7 +126,7 @@ public class Toggl
                 seconds = durations;
             }
         }
-        return String.format("%02d:%02d:%02d", new Object[]{Long.valueOf(hours), Long.valueOf(minutes), Long.valueOf(seconds)});
+        return String.format("%02d:%02d:%02d", new Object[]{hours, minutes, seconds});
     }
 
     public Number formatHhMm(Long durations) {
@@ -160,7 +148,7 @@ public class Toggl
     public ArrayList<String> convertProjectList(ArrayList<String[]> tmpProjectList) {
         ArrayList<String> list = new ArrayList();
         for (String[] tmp : tmpProjectList) {
-            list.add(tmp[1] + ":  " + convertHms(Long.valueOf(tmp[2]).longValue()));
+            list.add(tmp[1] + ":  " + convertHms(Long.valueOf(tmp[2])));
         }
         return list;
     }
@@ -173,23 +161,23 @@ public class Toggl
             Date date = timeEntry.getStart();
             String yyyy_MM_dd_Str = this.utiDate.formatYyyyMmDd(date);
             String mm_DD_Str = yyyy_MM_dd_Str.substring(5);
-            Long duration = Long.valueOf(timeEntry.getDuration());
-            if (0L < duration.longValue()) {
+            Long duration = timeEntry.getDuration();
+            if (0L < duration) {
                 if (dayDurationsList.isEmpty()) {
                     togglObj.dateStr = mm_DD_Str;
-                    togglObj.utcDate = Long.valueOf(this.utiDate.convertStartUTC(yyyy_MM_dd_Str)).longValue();
-                    togglObj.duration = duration.longValue();
+                    togglObj.utcDate = Long.valueOf(this.utiDate.convertStartUTC(yyyy_MM_dd_Str));
+                    togglObj.duration = duration;
                     dayDurationsList.add(togglObj);
                 } else {
                     int index = getSameDayIndex(dayDurationsList, mm_DD_Str);
                     if (0 <= index) {
                         TogglObject tmpObj = (TogglObject) dayDurationsList.get(index);
-                        tmpObj.duration += duration.longValue();
+                        tmpObj.duration += duration;
                         dayDurationsList.set(index, tmpObj);
                     } else {
                         togglObj.dateStr = mm_DD_Str;
-                        togglObj.utcDate = Long.valueOf(this.utiDate.convertStartUTC(yyyy_MM_dd_Str)).longValue();
-                        togglObj.duration = duration.longValue();
+                        togglObj.utcDate = Long.valueOf(this.utiDate.convertStartUTC(yyyy_MM_dd_Str));
+                        togglObj.duration = duration;
                         dayDurationsList.add(togglObj);
                     }
                 }
@@ -206,7 +194,7 @@ public class Toggl
                 day = (String) localIterator.next();
                 TogglObject obj = new TogglObject();
                 obj.dateStr = day;
-                obj.utcDate = Long.valueOf(this.utiDate.convertStartUTC(day)).longValue();
+                obj.utcDate = Long.valueOf(this.utiDate.convertStartUTC(day));
                 obj.duration = 0L;
                 dayDurationsList.add(obj);
             }
@@ -221,7 +209,7 @@ public class Toggl
                 if (index < 0) {
                     TogglObject obj = new TogglObject();
                     obj.dateStr = ((String) dayList.get(i)).substring(5);
-                    obj.utcDate = Long.valueOf(this.utiDate.convertStartUTC((String) dayList.get(i))).longValue();
+                    obj.utcDate = Long.valueOf(this.utiDate.convertStartUTC((String) dayList.get(i)));
                     obj.duration = 0L;
                     dayDurationsList.add(obj);
                 }
@@ -269,7 +257,7 @@ public class Toggl
             }
             String end = findEndDate(i - 1, dayDurationsList);
             TogglObject obj = new TogglObject();
-            obj.dateStr = (start + "���" + end);
+            obj.dateStr = (start + "〜" + end);
             obj.utcDate = utcDate;
             obj.duration = sum;
             sumDurationsList.add(obj);

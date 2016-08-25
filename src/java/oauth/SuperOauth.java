@@ -4,7 +4,6 @@ import com.sun.xml.wss.impl.misc.Base64;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -13,8 +12,6 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.logging.Level;
@@ -136,7 +133,7 @@ public class SuperOauth
             if ((e instanceof IOException)) {
                 e.printStackTrace();
             } else {
-                System.out.println("������Exception");
+                System.out.println("otherException");
             }
         } finally {
             if (reader != null) {
@@ -182,7 +179,7 @@ public class SuperOauth
         try {
             str = URLEncoder.encode(str, "UTF-8");
         } catch (UnsupportedEncodingException ex) {
-            System.out.println("������������������������������������������������������������");
+            System.out.println("UnsupportedEncodingException");
         }
         return str;
     }
@@ -196,7 +193,7 @@ public class SuperOauth
                 result[i] = a[1];
             }
         } catch (PatternSyntaxException ex) {
-            System.out.println("������������������������������");
+            System.out.println("PatternSyntaxException");
         }
         if ((result == null) || (result.length == 0)) {
             result[0] = "";

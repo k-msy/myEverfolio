@@ -18,8 +18,7 @@ import javax.xml.bind.annotation.XmlRootElement;
     @javax.persistence.NamedQuery(name = "Todoist_karma.findAll", query = "SELECT t FROM Todoist_karma t"),
     @javax.persistence.NamedQuery(name = "Todoist_karma.findByUserid", query = "SELECT t FROM Todoist_karma t WHERE t.userid = :userid"),
     @javax.persistence.NamedQuery(name = "Todoist_karma.findByKarma", query = "SELECT t FROM Todoist_karma t WHERE t.karma = :karma")})
-public class Todoist_karma
-        implements Serializable {
+public class Todoist_karma implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -54,26 +53,5 @@ public class Todoist_karma
 
     public void setKarma(String karma) {
         this.karma = karma;
-    }
-
-    public int hashCode() {
-        int hash = 0;
-        hash += (this.userid != null ? this.userid.hashCode() : 0);
-        return hash;
-    }
-
-    public boolean equals(Object object) {
-        if (!(object instanceof Todoist_karma)) {
-            return false;
-        }
-        Todoist_karma other = (Todoist_karma) object;
-        if (((this.userid == null) && (other.userid != null)) || ((this.userid != null) && (!this.userid.equals(other.userid)))) {
-            return false;
-        }
-        return true;
-    }
-
-    public String toString() {
-        return "entity.Todoist_karma[ userid=" + this.userid + " ]";
     }
 }

@@ -9,7 +9,6 @@ import entity.ZaimEnti;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.NumberFormat;
@@ -35,8 +34,7 @@ import view.chart.BarChart;
 
 @Named
 @RequestScoped
-public class Zaim
-        extends SuperOauth {
+public class Zaim extends SuperOauth {
 
     private static final String method = "GET";
     HttpServletRequest request = getRequest();
@@ -67,7 +65,7 @@ public class Zaim
             this.headerBb.setZaimCoopFlg(false);
             coop = false;
         }
-        return Boolean.valueOf(coop);
+        return coop;
     }
 
     public boolean isExistAccessToken(HttpSession session) {
@@ -210,7 +208,7 @@ public class Zaim
             int index = this.utiLogic.getSameValueIndex(paymentList, uniqueId);
             if (0 <= index) {
                 String[] tmpPayment = (String[]) paymentList.get(index);
-                tmpPayment[3] = String.valueOf(Long.valueOf(tmpPayment[3]).longValue() + moneyNode.get("amount").asLong());
+                tmpPayment[3] = String.valueOf(Long.valueOf(tmpPayment[3]) + moneyNode.get("amount").asLong());
                 paymentList.set(index, tmpPayment);
             } else {
                 payment[0] = uniqueId;
@@ -243,7 +241,7 @@ public class Zaim
         if (type.equals("payment")) {
             if (0 == moneyList.size()) {
                 obj.dateStr = yyyy_mm_dd.substring(5);
-                obj.utcDate = Long.valueOf(this.utiDate.convertStartUTC(yyyy_mm_dd)).longValue();
+                obj.utcDate = Long.valueOf(this.utiDate.convertStartUTC(yyyy_mm_dd));
                 obj.payment = moneyNode.get("amount").asInt();
                 moneyList.add(obj);
             } else {
@@ -254,7 +252,7 @@ public class Zaim
                     moneyList.set(index, tmp);
                 } else {
                     obj.dateStr = yyyy_mm_dd.substring(5);
-                    obj.utcDate = Long.valueOf(this.utiDate.convertStartUTC(yyyy_mm_dd)).longValue();
+                    obj.utcDate = Long.valueOf(this.utiDate.convertStartUTC(yyyy_mm_dd));
                     obj.payment = moneyNode.get("amount").asInt();
                     moneyList.add(obj);
                 }
@@ -262,7 +260,7 @@ public class Zaim
         } else if (type.equals("income")) {
             if (0 == moneyList.size()) {
                 obj.dateStr = yyyy_mm_dd.substring(5);
-                obj.utcDate = Long.valueOf(this.utiDate.convertStartUTC(yyyy_mm_dd)).longValue();
+                obj.utcDate = Long.valueOf(this.utiDate.convertStartUTC(yyyy_mm_dd));
                 obj.income = moneyNode.get("amount").asInt();
                 moneyList.add(obj);
             } else {
@@ -273,7 +271,7 @@ public class Zaim
                     moneyList.set(index, tmp);
                 } else {
                     obj.dateStr = yyyy_mm_dd.substring(5);
-                    obj.utcDate = Long.valueOf(this.utiDate.convertStartUTC(yyyy_mm_dd)).longValue();
+                    obj.utcDate = Long.valueOf(this.utiDate.convertStartUTC(yyyy_mm_dd));
                     obj.income = moneyNode.get("amount").asInt();
                     moneyList.add(obj);
                 }
@@ -286,7 +284,7 @@ public class Zaim
         long sum = 0L;
         NumberFormat nfCur = NumberFormat.getCurrencyInstance();
         for (String[] pay : paymentList) {
-            sum += Long.valueOf(pay[3]).longValue();
+            sum += Long.valueOf(pay[3]);
         }
         return String.valueOf(nfCur.format(sum));
     }
@@ -295,7 +293,7 @@ public class Zaim
         long sum = 0L;
         NumberFormat nfCur = NumberFormat.getCurrencyInstance();
         for (String[] pay : incomeList) {
-            sum += Long.valueOf(pay[2]).longValue();
+            sum += Long.valueOf(pay[2]);
         }
         return String.valueOf(nfCur.format(sum));
     }
@@ -351,7 +349,7 @@ public class Zaim
                 day = (String) localIterator.next();
                 ZaimObject obj = new ZaimObject();
                 obj.dateStr = day;
-                obj.utcDate = Long.valueOf(this.utiDate.convertStartUTC(day)).longValue();
+                obj.utcDate = Long.valueOf(this.utiDate.convertStartUTC(day));
                 list.add(obj);
             }
         } else {
@@ -365,7 +363,7 @@ public class Zaim
                 if (index < 0) {
                     ZaimObject obj = new ZaimObject();
                     obj.dateStr = ((String) dayList.get(i)).substring(5);
-                    obj.utcDate = Long.valueOf(this.utiDate.convertStartUTC((String) dayList.get(i))).longValue();
+                    obj.utcDate = Long.valueOf(this.utiDate.convertStartUTC((String) dayList.get(i)));
                     list.add(obj);
                 }
             }
@@ -387,7 +385,7 @@ public class Zaim
             }
             String end = findEndDate(i - 1, paymentList);
             ZaimObject obj = new ZaimObject();
-            obj.dateStr = (start + "���" + end);
+            obj.dateStr = (start + "〜" + end);
             obj.utcDate = utcDate;
             obj.payment = sum;
             sumList.add(obj);

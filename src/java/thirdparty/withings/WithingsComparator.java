@@ -2,8 +2,7 @@ package thirdparty.withings;
 
 import java.util.Comparator;
 
-public class WithingsComparator
-        implements Comparator<WithingsObject> {
+public class WithingsComparator implements Comparator<WithingsObject> {
 
     @Override
     public int compare(WithingsObject o1, WithingsObject o2) {

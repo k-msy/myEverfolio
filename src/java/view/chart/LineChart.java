@@ -2,7 +2,6 @@ package view.chart;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Map;
 import javax.enterprise.context.SessionScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -80,7 +79,7 @@ public class LineChart
         LineChartSeries karmas = new LineChartSeries();
         karmas.setLabel("カルマ");
         for (TodoistObject obj : karmaList) {
-            karmas.set(obj.getDateStr(), Long.valueOf(obj.getKarma()));
+            karmas.set(obj.getDateStr(), obj.getKarma());
         }
         this.todo_model.addSeries(karmas);
         this.todo_model.setTitle("カルマの遷移");
