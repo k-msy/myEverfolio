@@ -1,7 +1,6 @@
 package bean;
 
 import entity.TogglEnti;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Date;
 import javax.enterprise.context.SessionScoped;
@@ -19,15 +18,18 @@ import view.CalendarView;
 @Named
 @SessionScoped
 public class HeaderBb extends SuperBb {
-    
-    @Inject
-    TopBb topBb;
+
+    private boolean zaimCoopFlg;
+    private boolean zaim_coopEventExecute;
+    private boolean wiCoopFlg;
+    private boolean wi_coopEventExecute;
+    private boolean todoCoopFlg;
+    private boolean todo_coopEventExecute;
+
     @Inject
     Withings wi;
     @Inject
     Toggl toggl;
-    @Inject
-    TogglEnti togEnti;
     @Inject
     Zaim zaim;
     @Inject
@@ -36,13 +38,70 @@ public class HeaderBb extends SuperBb {
     CalendarView cal;
     @Inject
     UtilDate utiDate;
+
+    public String setRangeData() {
+        Date start = cal.getFrom();
+        Date end = cal.getTo();
+        if (utiDate.isToday(start, end)) {
+            return "/main/top.xhtml?faces-redirect=true";
+        }
+        ArrayList<String> dayList;
+        dayList = utiDate.getDayList(start, end);
+        int dayCount = dayList.size();
+        String from = utiDate.formatYyyyMmDd(start);
+        String to = utiDate.formatYyyyMmDd(end);
+        if (wiCoopFlg) {
+            HttpServletRequest request = getRequest();
+            HttpSession session = request.getSession(true);
+            if (wi.isExistAccessToken(session)) {
+                wi.setRangeMeasures(from, to, dayList, dayCount);
+            }
+        }
+        toggl.setRangeMeasures(start, end, dayList, dayCount);
+        if (zaimCoopFlg) {
+            zaim.setRangeMeasures(start, end, dayList, dayCount);
+        }
+        if (todoCoopFlg) {
+            todo.setRangeMeasures(start, end, dayList, dayCount);
+        }
+        return "/main/summary.xhtml?faces-redirect=true";
+    }
+
+    public void zaimCoop() {
+        HttpServletRequest request = getRequest();
+        String zaim_coopEventExecute = request.getParameter("headerComp:zaim_coopEventExecute");
+        if ("true".equals(zaim_coopEventExecute)) {
+            zaimCoopFlg = zaim.changeCoop(zaimCoopFlg);
+        } else if ("false".equals(zaim_coopEventExecute)) {
+            zaimCoopFlg = zaim.cancelChangeCoop(zaimCoopFlg);
+        }
+    }
+
+    public void wiCoop() {
+        HttpServletRequest request = getRequest();
+        String wi_coopEventExecute = request.getParameter("headerComp:wi_coopEventExecute");
+        if ("true".equals(wi_coopEventExecute)) {
+            wiCoopFlg = wi.changeCoop(wiCoopFlg);
+        } else if ("false".equals(wi_coopEventExecute)) {
+            wiCoopFlg = wi.cancelChangeCoop(wiCoopFlg);
+        }
+    }
+
+    public void todoCoop() {
+        HttpServletRequest request = getRequest();
+        String todo_coopEventExecute = request.getParameter("headerComp:todo_coopEventExecute");
+        if ("true".equals(todo_coopEventExecute)) {
+            todoCoopFlg = todo.changeCoop(todoCoopFlg);
+        } else if ("false".equals(todo_coopEventExecute)) {
+            todoCoopFlg = todo.cancelChangeCoop(todoCoopFlg);
+        }
+    }
+
+    public String logout() {
+        return "";
+    }
     
-    private boolean zaimCoopFlg;
-    private boolean zaim_coopEventExecute;
-    private boolean wiCoopFlg;
-    private boolean wi_coopEventExecute;
-    private boolean todoCoopFlg;
-    private boolean todo_coopEventExecute;
+    
 
     public boolean isZaimCoopFlg() {
         return this.zaimCoopFlg;
@@ -90,73 +149,5 @@ public class HeaderBb extends SuperBb {
 
     public void setTodo_coopEventExecute(boolean todo_coopEventExecute) {
         this.todo_coopEventExecute = todo_coopEventExecute;
-    }
-
-    /**
-     * 指定範囲のデータを取得する
-     * @return 
-     */
-    public String setRangeData() {
-        Date start = this.cal.getFrom();
-        Date end = this.cal.getTo();
-        if (this.utiDate.isToday(start, end)) {
-            return "/main/top.xhtml?faces-redirect=true";
-        }
-        ArrayList<String> dayList;
-        dayList = this.utiDate.getDayList(start, end);
-        int dayCount = dayList.size();
-        String from = this.utiDate.formatYyyyMmDd(start);
-        String to = this.utiDate.formatYyyyMmDd(end);
-        if (this.wiCoopFlg) {
-            HttpServletRequest request = getRequest();
-            HttpSession session = request.getSession(true);
-            if (this.wi.isExistAccessToken(session)) {
-                this.wi.setRangeMeasures(from, to, dayList, dayCount);
-            }
-        }
-        this.toggl.setRangeMeasures(start, end, dayList, dayCount);
-        if (this.zaimCoopFlg) {
-            this.zaim.setRangeMeasures(start, end, dayList, dayCount);
-        }
-        if (this.todoCoopFlg) {
-            this.todo.setRangeMeasures(start, end, dayList, dayCount);
-        }
-        return "/main/summary.xhtml?faces-redirect=true";
-    }
-
-    public void zaimCoop() {
-        HttpServletRequest request = getRequest();
-        String zaim_coopEventExecute = request.getParameter("headerComp:zaim_coopEventExecute");
-        System.out.println("zaimCoopFlg = " + this.zaimCoopFlg);
-        System.out.println("zaim_coopEventExecute = " + zaim_coopEventExecute);
-        if ("true".equals(zaim_coopEventExecute)) {
-            this.zaimCoopFlg = this.zaim.changeCoop(this.zaimCoopFlg);
-        } else if ("false".equals(zaim_coopEventExecute)) {
-            this.zaimCoopFlg = this.zaim.cancelChangeCoop(this.zaimCoopFlg);
-        }
-    }
-
-    public void wiCoop() {
-        HttpServletRequest request = getRequest();
-        String wi_coopEventExecute = request.getParameter("headerComp:wi_coopEventExecute");
-        System.out.println("wiCoopFlg = " + this.wiCoopFlg);
-        System.out.println("wi_coopEventExecute = " + wi_coopEventExecute);
-        if ("true".equals(wi_coopEventExecute)) {
-            this.wiCoopFlg = this.wi.changeCoop(this.wiCoopFlg);
-        } else if ("false".equals(wi_coopEventExecute)) {
-            this.wiCoopFlg = this.wi.cancelChangeCoop(this.wiCoopFlg);
-        }
-    }
-
-    public void todoCoop() {
-        HttpServletRequest request = getRequest();
-        String todo_coopEventExecute = request.getParameter("headerComp:todo_coopEventExecute");
-        System.out.println("todoCoopFlg = " + this.todoCoopFlg);
-        System.out.println("todo_coopEventExecute = " + todo_coopEventExecute);
-        if ("true".equals(todo_coopEventExecute)) {
-            this.todoCoopFlg = this.todo.changeCoop(this.todoCoopFlg);
-        } else if ("false".equals(todo_coopEventExecute)) {
-            this.todoCoopFlg = this.todo.cancelChangeCoop(this.todoCoopFlg);
-        }
     }
 }
