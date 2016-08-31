@@ -35,6 +35,11 @@ public class SuperBb implements Serializable {
         FacesContext.getCurrentInstance().addMessage(null, msg);
     }
 
+    /**
+     * 文字列をUTF-8でエンコードする
+     * @param str
+     * @return 
+     */
     protected String URLEncode(String str) {
         try {
             str = URLEncoder.encode(str, "UTF-8");

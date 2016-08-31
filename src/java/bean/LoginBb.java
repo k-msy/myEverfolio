@@ -1,6 +1,10 @@
 package bean;
 
 import java.io.Serializable;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Named;
 import javax.servlet.ServletException;
@@ -17,12 +21,17 @@ public class LoginBb extends SuperBb implements Serializable {
     @NotNull
     private String pw;
 
+    /**
+     * ログイン
+     * @return 
+     */
     public String login() {
         HttpServletRequest request = getRequest();
         try {
             request.login(this.id, this.pw);
             HttpSession session = request.getSession(true);
             session.setAttribute("user_id", this.id);
+                        
         } catch (ServletException ex) {
             facesErrorMsg("ログイン失敗");
             return "/loginError.xhtml?faces-redirect=true";
@@ -30,6 +39,10 @@ public class LoginBb extends SuperBb implements Serializable {
         return "/main/top.xhtml?faces-redirect=true";
     }
 
+    /**
+     * ログアウト
+     * @return 
+     */
     public String logout() {
         getServlet().invalidateSession();
         HttpServletRequest request = getRequest();
@@ -40,6 +53,9 @@ public class LoginBb extends SuperBb implements Serializable {
         return "/login.xhtml?faces-redirect=true";
     }
 
+    /**
+     * クリア
+     */
     public void clear() {
         this.id = (this.pw = null);
     }

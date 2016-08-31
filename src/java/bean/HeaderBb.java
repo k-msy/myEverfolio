@@ -19,13 +19,6 @@ import view.CalendarView;
 @Named
 @SessionScoped
 public class HeaderBb extends SuperBb {
-
-    private boolean zaimCoopFlg;
-    private boolean zaim_coopEventExecute;
-    private boolean wiCoopFlg;
-    private boolean wi_coopEventExecute;
-    private boolean todoCoopFlg;
-    private boolean todo_coopEventExecute;
     
     @Inject
     TopBb topBb;
@@ -43,6 +36,13 @@ public class HeaderBb extends SuperBb {
     CalendarView cal;
     @Inject
     UtilDate utiDate;
+    
+    private boolean zaimCoopFlg;
+    private boolean zaim_coopEventExecute;
+    private boolean wiCoopFlg;
+    private boolean wi_coopEventExecute;
+    private boolean todoCoopFlg;
+    private boolean todo_coopEventExecute;
 
     public boolean isZaimCoopFlg() {
         return this.zaimCoopFlg;
@@ -92,7 +92,10 @@ public class HeaderBb extends SuperBb {
         this.todo_coopEventExecute = todo_coopEventExecute;
     }
 
-    
+    /**
+     * 指定範囲のデータを取得する
+     * @return 
+     */
     public String setRangeData() {
         Date start = this.cal.getFrom();
         Date end = this.cal.getTo();
@@ -155,9 +158,5 @@ public class HeaderBb extends SuperBb {
         } else if ("false".equals(todo_coopEventExecute)) {
             this.todoCoopFlg = this.todo.cancelChangeCoop(this.todoCoopFlg);
         }
-    }
-
-    public String logout() {
-        return "";
     }
 }

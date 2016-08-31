@@ -49,10 +49,18 @@ public class RegisterBb extends SuperBb implements Serializable {
         return null;
     }
 
+    /**
+     * 入力値のクリア
+     */
     public void clear() {
         this.id = (this.pw = this.name = null);
     }
 
+    /**
+     * pwをSHA256でエンコードして返却
+     * @param pw
+     * @return 
+     */
     private String getEncodedPw(String pw) {
         SHA256Encoder encoder = new SHA256Encoder();
         return encoder.encodePassword(pw);
