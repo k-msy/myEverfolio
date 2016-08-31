@@ -12,9 +12,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ejb.EJB;
 import javax.enterprise.context.RequestScoped;
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import thirdparty.zaim.Zaim;
+import util.UtilLogic;
 
 @RequestScoped
 public class Ozaim extends SuperOauth {
@@ -24,16 +26,21 @@ public class Ozaim extends SuperOauth {
     HttpSession session = this.request.getSession(true);
     @EJB
     ZaimDb db;
+    
+    @Inject
+    UtilLogic utiLogic;
 
-    public void getRequestToken()
-            throws IOException {
+    public void getRequestToken() throws IOException {
         String reqTokenResult = "";
+        String callbackUrl = utiLogic.getAbsoluteContextPath(request) + "/faces/main/callback/zaim";
         try {
-            SortedMap<String, String> paramsMap = super.makeParam("b12800bf82cfe709683c9b812d35fc450efb8bc4", "http://127.0.0.1:8080/myEverfolio/faces/main/callback/zaim");
+            SortedMap<String, String> paramsMap = super.makeParam("b12800bf82cfe709683c9b812d35fc450efb8bc4", callbackUrl);
             String sigKey = super.makeSigKey("6a1b7a0ad40bdbd3d9b4d0a64fb757d10a606af4", "");
             String sigData = super.makeSigData("b12800bf82cfe709683c9b812d35fc450efb8bc4", "https://api.zaim.net/v2/auth/request", paramsMap, "GET");
 
-            reqTokenResult = super.getRequestToken(paramsMap, sigKey, sigData, "http://127.0.0.1:8080/myEverfolio/faces/main/callback/zaim", "https://api.zaim.net/v2/auth/request", "GET");
+            
+            
+            reqTokenResult = super.getRequestToken(paramsMap, sigKey, sigData, callbackUrl, "https://api.zaim.net/v2/auth/request", "GET");
             if (!"".equals(reqTokenResult)) {
                 String[] split = extractToken(reqTokenResult);
                 this.session.setAttribute("za_request_token", split[0]);

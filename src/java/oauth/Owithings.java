@@ -12,14 +12,20 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ejb.EJB;
 import javax.enterprise.context.RequestScoped;
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import util.UtilLogic;
 
 @RequestScoped
 public class Owithings extends SuperOauth {
 
     @EJB
     WithingsDb db;
+    
+    @Inject
+    UtilLogic utiLogic;
+    
     private static final String method = "GET";
     HttpServletRequest request = getRequest();
     HttpSession session = this.request.getSession(true);
@@ -90,12 +96,16 @@ public class Owithings extends SuperOauth {
 
     public void getRequestToken() {
         String reqTokenResult = "";
+        String callbackUrl = utiLogic.getAbsoluteContextPath(request) + "/faces/main/callback/withings";
         try {
-            SortedMap<String, String> paramsMap = super.makeParam("f1e9bebd38c1bf97b7c58bf2f5844c9bf7c38ec50254124d4f43b8582f0f", "http://127.0.0.1:8080/myEverfolio/faces/main/callback/withings");
+            SortedMap<String, String> paramsMap = super.makeParam("f1e9bebd38c1bf97b7c58bf2f5844c9bf7c38ec50254124d4f43b8582f0f", callbackUrl);
             String sigKey = super.makeSigKey("c17484ff357d801897828f674bb6175b4f94340516ce5bb4922def7e035", "");
             String sigData = super.makeSigData("f1e9bebd38c1bf97b7c58bf2f5844c9bf7c38ec50254124d4f43b8582f0f", "https://oauth.withings.com/account/request_token", paramsMap, "GET");
 
-            reqTokenResult = getRequestToken(paramsMap, sigKey, sigData, "http://127.0.0.1:8080/myEverfolio/faces/main/callback/withings", "https://oauth.withings.com/account/request_token", "GET");
+            
+            
+            reqTokenResult = getRequestToken(paramsMap, sigKey, sigData, callbackUrl, "https://oauth.withings.com/account/request_token", "GET");
+            System.out.println("reqTokenResult=" + reqTokenResult);
             if (!"".equals(reqTokenResult)) {
                 String[] split = extractToken(reqTokenResult);
                 this.session.setAttribute("wi_request_token", split[0]);

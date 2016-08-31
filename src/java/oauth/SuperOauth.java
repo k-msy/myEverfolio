@@ -113,6 +113,17 @@ public class SuperOauth
         return paramsMap;
     }
 
+    /**
+     * 
+     * @param paramsMap
+     * @param sigKey
+     * @param sigData
+     * @param OAUTH_CALLBACK
+     * @param REQUEST_TOKEN_URL
+     * @param method
+     * @return
+     * @throws IOException 
+     */
     protected String getRequestToken(SortedMap<String, String> paramsMap, String sigKey, String sigData, String OAUTH_CALLBACK, String REQUEST_TOKEN_URL, String method)
             throws IOException {
         HttpURLConnection connection = null;
