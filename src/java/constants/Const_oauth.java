@@ -1,7 +1,7 @@
 package constants;
 
 public class Const_oauth {
-
+    public static final String OAUTH_CALLBACK = "oauth_callback";
     public static final String OAUTH_CONSUMER_KEY = "oauth_consumer_key";
     public static final String OAUTH_NONCE = "oauth_nonce";
     public static final String OAUTH_TIMESTAMP = "oauth_timestamp";

@@ -2,12 +2,10 @@ package oauth;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import static constants.Common.HTTP_POST;
+import static constants.Const_todoist.*;
 import db.TodoistDb;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Serializable;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
@@ -29,7 +27,7 @@ public class Otodoist extends SuperOauth {
     TodoistDb db;
 
     public void getRequestToken() {
-        String url = "https://todoist.com/oauth/authorize?client_id=22933d565398402a8e6fedd898c14d71&scope=data:read&state=" + super.getRandomChar();
+        String url = AUTHORIZATION_URL + "?" + TODO_CLIENT_ID + "=" + CLIENT_ID + "&" + TODO_SCOPE + "=" + TODO_DATA_READ + "&" + TODO_STATE + "=" + super.getRandomChar();
         try {
             HttpServletResponse response = getResponse();
             response.sendRedirect(url);
@@ -39,44 +37,38 @@ public class Otodoist extends SuperOauth {
     }
 
     public boolean isCallback(HttpSession session) {
-        if ((session.getAttribute("state") != null) && (session.getAttribute("code") != null)) {
+        if ((session.getAttribute(TODO_STATE) != null) && (session.getAttribute(TODO_CODE) != null)) {
             getAccessToken();
-            this.db.update(this.request, session);
-            this.db.insertKarmaDb(this.request, session);
-            session.removeAttribute("state");
-            session.removeAttribute("code");
+            db.update(request, session);
+            db.insertKarmaDb(request, session);
+            session.removeAttribute(TODO_STATE);
+            session.removeAttribute(TODO_CODE);
             return true;
         }
         boolean flg = false;
-
         return flg;
     }
 
     private void getAccessToken() {
-        HttpURLConnection connection = null;
-        BufferedReader reader = null;
-        String code = this.session.getAttribute("code").toString();
+        String code = session.getAttribute(TODO_CODE).toString();
         try {
-            URL url = new URL("https://todoist.com/oauth/access_token?client_id=22933d565398402a8e6fedd898c14d71&client_secret=0bb4307c73e54558a2ba8032143bf571&code=" + code);
-
-            connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("POST");
-            connection.connect();
-            reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String jsonText = reader.readLine();
-            System.out.println("jsonText=" + jsonText);
-
+            URL url = new URL(
+                    ACCESS_TOKEN_URL + "?"
+                    + TODO_CLIENT_ID + "=" + CLIENT_ID + "&"
+                    + TODO_CLIENT_SECRET + "=" + CLIENT_SECRET + "&"
+                    + TODO_CODE + "=" + code
+            );
+           
+            String jsonText = super.httpResponse(url, HTTP_POST);
+            
             ObjectMapper mapper = new ObjectMapper();
             JsonNode node = (JsonNode) mapper.readValue(jsonText, JsonNode.class);
 
-            String[] accessTokenStr = node.get("access_token").toString().split("\"");
-            String accessToken = accessTokenStr[1];
+            String[] accessTokenStr = node.get(TODO_ACCESS_TOKEN).toString().split("\"");
+            String[] token_typeStr = node.get(TODO_TOKEN_TYPE).toString().split("\"");
 
-            String[] token_typeStr = node.get("token_type").toString().split("\"");
-            String token_type = token_typeStr[1];
-
-            this.session.setAttribute("access_token", accessToken);
-            this.session.setAttribute("token_type", token_type);
+            session.setAttribute(TODO_ACCESS_TOKEN, accessTokenStr[1]);
+            session.setAttribute(TODO_TOKEN_TYPE, token_typeStr[1]);
         } catch (MalformedURLException ex) {
             Logger.getLogger(Otodoist.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ProtocolException ex) {
@@ -85,4 +77,5 @@ public class Otodoist extends SuperOauth {
             Logger.getLogger(Otodoist.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+
 }

@@ -1,11 +1,14 @@
 package oauth;
 
 import com.sun.xml.wss.impl.misc.Base64;
+import static constants.Common.UTF8;
+import static constants.Const_oauth.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.ProtocolException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.security.InvalidKeyException;
@@ -48,8 +51,8 @@ public class SuperOauth
 
     public void sendRedirect(HttpServletResponse response, String url, String token)
             throws IOException {
-        response.setContentType("text/html; charset=UTF-8");
-        String redirectUrl = url + "?oauth_token=" + token;
+        response.setContentType("text/html; charset=" + UTF8);
+        String redirectUrl = url + "?" + OAUTH_TOKEN + "=" + token;
         response.sendRedirect(redirectUrl);
     }
 
@@ -66,7 +69,7 @@ public class SuperOauth
                 System.out.println("InvalidKeyException!!");
             }
         } catch (NoSuchAlgorithmException ex) {
-            System.out.println("���������������������������������������������");
+            System.out.println("該当するアルゴリズムがありません");
         }
         return Base64.encode(rawHmac);
     }
@@ -93,65 +96,53 @@ public class SuperOauth
             params = params + (String) entry.getKey() + "=" + (String) entry.getValue() + "&";
         }
         params = params.substring(0, params.length() - 1);
-
         params = URLEncode(params);
-
         String requestURL = URLEncode(URL);
-
         return method + "&" + requestURL + "&" + params;
     }
 
     protected SortedMap<String, String> makeParam(String consumer_key, String oauth_callback) {
         SortedMap<String, String> paramsMap = new TreeMap();
-        paramsMap.put("oauth_callback", URLEncode(oauth_callback));
-        paramsMap.put("oauth_consumer_key", consumer_key);
-        paramsMap.put("oauth_nonce", getRandomChar());
-        paramsMap.put("oauth_timestamp", String.valueOf(getUnixTime()));
-        paramsMap.put("oauth_signature_method", "HMAC-SHA1");
-        paramsMap.put("oauth_version", "1.0");
+        paramsMap.put(OAUTH_CALLBACK, URLEncode(oauth_callback));
+        paramsMap.put(OAUTH_CONSUMER_KEY, consumer_key);
+        paramsMap.put(OAUTH_NONCE, getRandomChar());
+        paramsMap.put(OAUTH_TIMESTAMP, String.valueOf(getUnixTime()));
+        paramsMap.put(OAUTH_SIGNATURE_METHOD, HMAC_SHA1);
+        paramsMap.put(OAUTH_VERSION, "1.0");
 
         return paramsMap;
     }
 
     /**
-     * 
+     *
      * @param paramsMap
      * @param sigKey
      * @param sigData
-     * @param OAUTH_CALLBACK
+     * @param oauth_callback
      * @param REQUEST_TOKEN_URL
      * @param method
      * @return
-     * @throws IOException 
+     * @throws IOException
      */
-    protected String getRequestToken(SortedMap<String, String> paramsMap, String sigKey, String sigData, String OAUTH_CALLBACK, String REQUEST_TOKEN_URL, String method)
-            throws IOException {
-        HttpURLConnection connection = null;
-        BufferedReader reader = null;
+    protected String getRequestToken(SortedMap<String, String> paramsMap, String sigKey, String sigData, String oauth_callback, String REQUEST_TOKEN_URL, String method) throws IOException {
         try {
-            paramsMap.put("oauth_signature", makeSignature(sigKey, sigData));
-
-            URL url = new URL(REQUEST_TOKEN_URL + "?oauth_callback=" + URLEncode(OAUTH_CALLBACK) + "&oauth_consumer_key=" + URLEncode((String) paramsMap.get("oauth_consumer_key")) + "&oauth_nonce=" + URLEncode((String) paramsMap.get("oauth_nonce")) + "&oauth_signature=" + URLEncode((String) paramsMap.get("oauth_signature")) + "&oauth_signature_method=" + URLEncode((String) paramsMap.get("oauth_signature_method")) + "&oauth_timestamp=" + URLEncode((String) paramsMap.get("oauth_timestamp")) + "&oauth_version=" + URLEncode((String) paramsMap.get("oauth_version")));
-
-            System.out.println("url=" + url.toString());
-
-            connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod(method);
-            connection.connect();
-            reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            return reader.readLine();
+            paramsMap.put(OAUTH_SIGNATURE, makeSignature(sigKey, sigData));
+            URL url = new URL(
+                    REQUEST_TOKEN_URL + "?"
+                    + OAUTH_CALLBACK + "=" + URLEncode(oauth_callback) + "&"
+                    + OAUTH_CONSUMER_KEY + "=" + URLEncode(paramsMap.get(OAUTH_CONSUMER_KEY)) + "&"
+                    + OAUTH_NONCE + "=" + URLEncode(paramsMap.get(OAUTH_NONCE)) + "&"
+                    + OAUTH_SIGNATURE + "=" + URLEncode(paramsMap.get(OAUTH_SIGNATURE)) + "&"
+                    + OAUTH_SIGNATURE_METHOD + "=" + URLEncode(paramsMap.get(OAUTH_SIGNATURE_METHOD)) + "&"
+                    + OAUTH_TIMESTAMP + "=" + URLEncode(paramsMap.get(OAUTH_TIMESTAMP)) + "&"
+                    + OAUTH_VERSION + "=" + URLEncode(paramsMap.get(OAUTH_VERSION))
+            );
+            return this.httpResponse(url, method);
         } catch (IOException e) {
             if ((e instanceof IOException)) {
                 e.printStackTrace();
             } else {
                 System.out.println("otherException");
-            }
-        } finally {
-            if (reader != null) {
-                reader.close();
-            }
-            if (connection != null) {
-                connection.disconnect();
             }
         }
         return "";
@@ -159,17 +150,24 @@ public class SuperOauth
 
     protected void sendRedirect(String CONSUMER_KEY, String CONSUMER_SECRET, String REQUEST_TOKEN, String REQUEST_TOKEN_SECRET, String AUTHORIZE_URL, String method) {
         SortedMap<String, String> paramsMap = new TreeMap();
-        paramsMap.put("oauth_consumer_key", CONSUMER_KEY);
-        paramsMap.put("oauth_nonce", getRandomChar());
-        paramsMap.put("oauth_timestamp", String.valueOf(getUnixTime()));
-        paramsMap.put("oauth_token", REQUEST_TOKEN);
-        paramsMap.put("oauth_signature_method", "HMAC-SHA1");
-        paramsMap.put("oauth_version", "1.0");
+        paramsMap.put(OAUTH_CONSUMER_KEY, CONSUMER_KEY);
+        paramsMap.put(OAUTH_NONCE, getRandomChar());
+        paramsMap.put(OAUTH_TIMESTAMP, String.valueOf(getUnixTime()));
+        paramsMap.put(OAUTH_TOKEN, REQUEST_TOKEN);
+        paramsMap.put(OAUTH_SIGNATURE_METHOD, HMAC_SHA1);
+        paramsMap.put(OAUTH_VERSION, "1.0");
 
         String sigData = makeSigData(CONSUMER_KEY, AUTHORIZE_URL, paramsMap, method);
         String sigKey = makeSigKey(CONSUMER_SECRET, REQUEST_TOKEN_SECRET);
 
-        String redirectUrl = AUTHORIZE_URL + "?oauth_consumer_key=" + URLEncode((String) paramsMap.get("oauth_consumer_key")) + "&oauth_nonce=" + URLEncode((String) paramsMap.get("oauth_nonce")) + "&oauth_signature=" + URLEncode(makeSignature(sigKey, sigData)) + "&oauth_signature_method=" + URLEncode((String) paramsMap.get("oauth_signature_method")) + "&oauth_timestamp=" + URLEncode((String) paramsMap.get("oauth_timestamp")) + "&oauth_token=" + URLEncode((String) paramsMap.get("oauth_token")) + "&oauth_version=" + URLEncode((String) paramsMap.get("oauth_version"));
+        String redirectUrl = AUTHORIZE_URL + "?"
+                + OAUTH_CONSUMER_KEY + "=" + URLEncode(paramsMap.get(OAUTH_CONSUMER_KEY)) + "&"
+                + OAUTH_NONCE + "=" + URLEncode(paramsMap.get(OAUTH_NONCE)) + "&"
+                + OAUTH_SIGNATURE + "=" + URLEncode(makeSignature(sigKey, sigData)) + "&"
+                + OAUTH_SIGNATURE_METHOD + "=" + URLEncode(paramsMap.get(OAUTH_SIGNATURE_METHOD)) + "&"
+                + OAUTH_TIMESTAMP + "=" + URLEncode(paramsMap.get(OAUTH_TIMESTAMP)) + "&"
+                + OAUTH_TOKEN + "=" + URLEncode(paramsMap.get(OAUTH_TOKEN)) + "&"
+                + OAUTH_VERSION + "=" + URLEncode(paramsMap.get(OAUTH_VERSION));
         try {
             HttpServletResponse response = getResponse();
             response.sendRedirect(redirectUrl);
@@ -188,7 +186,7 @@ public class SuperOauth
 
     protected String URLEncode(String str) {
         try {
-            str = URLEncoder.encode(str, "UTF-8");
+            str = URLEncoder.encode(str, UTF8);
         } catch (UnsupportedEncodingException ex) {
             System.out.println("UnsupportedEncodingException");
         }
@@ -211,4 +209,16 @@ public class SuperOauth
         }
         return result;
     }
+
+    protected String httpResponse(URL url, String httpMethod) throws ProtocolException, IOException {
+        HttpURLConnection connection = null;
+        BufferedReader reader = null;
+
+        connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod(httpMethod);
+        connection.connect();
+        reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        return reader.readLine();
+    }
+
 }

@@ -56,10 +56,10 @@ public class TopBb extends SuperBb implements Serializable {
         }
 
         //withings
-        if (this.wi.doesCooperate(session)) {
+        if (wi.doesCooperate(session)) {
             try {
-                this.wi.setStepsMeasures();
-                this.wi.setWeightMeasures();
+                wi.setStepsMeasures();
+                wi.setWeightMeasures();
             } catch (IOException ex) {
                 System.out.println("歩数・体重データ取得でなんらかの例外をキャッチしたよ");
             }
@@ -67,13 +67,13 @@ public class TopBb extends SuperBb implements Serializable {
 
         //toggl
         try {
-            ArrayList<String[]> tmpProjectList = this.toggl.getTodayDuration();
+            ArrayList<String[]> tmpProjectList = toggl.getTodayDuration();
 
-            long totalDurations = this.toggl.getTotalDurations(tmpProjectList);
-            this.togEnti.setTotalDurations(this.toggl.convertHms(totalDurations));
+            long totalDurations = toggl.getTotalDurations(tmpProjectList);
+            togEnti.setTotalDurations(toggl.convertHms(totalDurations));
 
             ArrayList<String> projectList = this.toggl.convertProjectList(tmpProjectList);
-            this.togEnti.setProjectList(projectList);
+            togEnti.setProjectList(projectList);
         } catch (IOException e) {
             System.out.println("Toggl失敗");
             e.printStackTrace();

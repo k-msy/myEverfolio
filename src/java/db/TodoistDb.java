@@ -19,45 +19,45 @@ public class TodoistDb {
     Otodoist oto;
 
     public Token_todoist findObj(String userId) {
-        return (Token_todoist) this.em.find(Token_todoist.class, userId);
+        return (Token_todoist) em.find(Token_todoist.class, userId);
     }
 
     public void coopTodoist(HttpSession session) {
-        this.oto.getRequestToken();
+        oto.getRequestToken();
     }
 
     public void releaseCoopTodoist(HttpSession session) {
-        Token_todoist token = (Token_todoist) this.em.find(Token_todoist.class, session.getAttribute("user_id").toString());
+        Token_todoist token = (Token_todoist) em.find(Token_todoist.class, session.getAttribute("user_id").toString());
         token.setAccess_token("");
         token.setTodo_code("");
         token.setTodo_state("");
         token.setToken_type("");
-        this.em.merge(token);
+        em.merge(token);
     }
 
     public void update(HttpServletRequest request, HttpSession session) {
-        Token_todoist token = (Token_todoist) this.em.find(Token_todoist.class, session.getAttribute("user_id").toString());
+        Token_todoist token = (Token_todoist) em.find(Token_todoist.class, session.getAttribute("user_id").toString());
         token.setAccess_token(session.getAttribute("access_token").toString());
         token.setTodo_code(session.getAttribute("code").toString());
         token.setTodo_state(session.getAttribute("state").toString());
         token.setToken_type(session.getAttribute("token_type").toString());
-        this.em.merge(token);
+        em.merge(token);
     }
 
     public void insertKarmaDb(HttpServletRequest request, HttpSession session) {
         String id = session.getAttribute("user_id").toString();
-        Todoist_karma todokarma = (Todoist_karma) this.em.find(Todoist_karma.class, id);
+        Todoist_karma todokarma = (Todoist_karma) em.find(Todoist_karma.class, id);
         if (todokarma == null) {
             todokarma = new Todoist_karma();
             todokarma.setUserid(id);
             todokarma.setKarma("");
-            this.em.persist(todokarma);
+            em.persist(todokarma);
         }
     }
 
     public void updateKarma(String userId, String diff) {
-        Todoist_karma todokarma = (Todoist_karma) this.em.find(Todoist_karma.class, userId);
+        Todoist_karma todokarma = (Todoist_karma) em.find(Todoist_karma.class, userId);
         todokarma.setKarma(diff);
-        this.em.persist(todokarma);
+        em.persist(todokarma);
     }
 }

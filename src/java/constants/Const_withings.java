@@ -7,7 +7,7 @@ public class Const_withings {
     public static final String REQUEST_TOKEN_URL = "https://oauth.withings.com/account/request_token";
     public static final String AUTHORIZE_URL = "https://oauth.withings.com/account/authorize";
     public static final String ACCESS_TOKEN_URL = "https://oauth.withings.com/account/access_token";
-    public static final String OAUTH_CALLBACK = "http://127.0.0.1:8080/myEverfolio/faces/main/callback/withings";
+    public static final String WI_RELATIVE_CALLBACK_URL = "/faces/main/callback/withings";
     public static final String WI_REQUEST_TOKEN = "wi_request_token";
     public static final String WI_REQUEST_TOKEN_SECRET = "wi_request_token_secret";
     public static final String WI_USERID = "wi_userId";

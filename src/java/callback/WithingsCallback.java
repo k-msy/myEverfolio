@@ -1,5 +1,7 @@
 package callback;
 
+import static constants.Const_oauth.*;
+import static constants.Const_withings.*;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -18,11 +20,12 @@ public class WithingsCallback extends HttpServlet {
     @Inject
     UtilLogic utiLogic;
     
+    @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         HttpSession session = request.getSession(true);
-        session.setAttribute("wi_userId", request.getParameter("userid"));
-        session.setAttribute("wi_oauth_token", request.getParameter("oauth_token"));
-        session.setAttribute("wi_oauth_verifier", request.getParameter("oauth_verifier"));
+        session.setAttribute(WI_USERID, request.getParameter(OAUTH_USERID));
+        session.setAttribute(WI_OAUTH_TOKEN, request.getParameter(OAUTH_TOKEN));
+        session.setAttribute(WI_OAUTH_VERIFIER, request.getParameter(OAUTH_VERIFIER));
         try {
             response.sendRedirect(utiLogic.getAbsoluteContextPath(request) + "/faces/main/top.xhtml?faces-redirect=true");
         } catch (IOException ex) {

@@ -1,10 +1,10 @@
 package oauth;
 
+import static constants.Common.HTTP_GET;
+import static constants.Const_oauth.*;
+import static constants.Const_withings.*;
 import db.WithingsDb;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -22,24 +22,23 @@ public class Owithings extends SuperOauth {
 
     @EJB
     WithingsDb db;
-    
+
     @Inject
     UtilLogic utiLogic;
-    
-    private static final String method = "GET";
+
     HttpServletRequest request = getRequest();
     HttpSession session = this.request.getSession(true);
 
     public boolean isCallback(HttpSession session) {
         boolean flg = true;
-        if ((session.getAttribute("wi_oauth_token") != null) && (session.getAttribute("wi_request_token_secret") != null)) {
+        if ((session.getAttribute(WI_OAUTH_TOKEN) != null) && (session.getAttribute(WI_REQUEST_TOKEN_SECRET) != null)) {
             try {
                 getAccessToken();
                 this.db.update(this.request, session);
 
-                session.removeAttribute("wi_userId");
-                session.removeAttribute("wi_oauth_token");
-                session.removeAttribute("wi_request_token_secret");
+                session.removeAttribute(WI_USERID);
+                session.removeAttribute(WI_OAUTH_TOKEN);
+                session.removeAttribute(WI_REQUEST_TOKEN_SECRET);
                 return true;
             } catch (IOException ex) {
                 Logger.getLogger(Ozaim.class.getName()).log(Level.SEVERE, null, ex);
@@ -50,71 +49,59 @@ public class Owithings extends SuperOauth {
         return flg;
     }
 
-    public void getAccessToken()
-            throws IOException {
-        HttpURLConnection connection = null;
-        BufferedReader reader = null;
-        String oauth_token = this.session.getAttribute("wi_oauth_token").toString();
-        String request_token_secret = this.session.getAttribute("wi_request_token_secret").toString();
+    public void getAccessToken() throws IOException {
+        String oauth_token = this.session.getAttribute(WI_OAUTH_TOKEN).toString();
+        String request_token_secret = this.session.getAttribute(WI_REQUEST_TOKEN_SECRET).toString();
         try {
             SortedMap<String, String> paramsMap = new TreeMap();
+            paramsMap.put(OAUTH_CONSUMER_KEY, CONSUMER_KEY);
+            paramsMap.put(OAUTH_NONCE, super.getRandomChar());
+            paramsMap.put(OAUTH_TIMESTAMP, String.valueOf(super.getUnixTime()));
+            paramsMap.put(OAUTH_TOKEN, oauth_token);
+            paramsMap.put(OAUTH_SIGNATURE_METHOD, HMAC_SHA1);
+            paramsMap.put(OAUTH_VERSION, "1.0");
 
-            paramsMap.put("oauth_consumer_key", "f1e9bebd38c1bf97b7c58bf2f5844c9bf7c38ec50254124d4f43b8582f0f");
-            paramsMap.put("oauth_nonce", super.getRandomChar());
-            paramsMap.put("oauth_timestamp", String.valueOf(super.getUnixTime()));
-            paramsMap.put("oauth_token", oauth_token);
-            paramsMap.put("oauth_signature_method", "HMAC-SHA1");
-            paramsMap.put("oauth_version", "1.0");
+            String sigData = super.makeSigData(CONSUMER_KEY, ACCESS_TOKEN_URL, paramsMap, HTTP_GET);
+            String sigKey = super.makeSigKey(CONSUMER_SECRET, request_token_secret);
 
-            String sigData = super.makeSigData("f1e9bebd38c1bf97b7c58bf2f5844c9bf7c38ec50254124d4f43b8582f0f", "https://oauth.withings.com/account/access_token", paramsMap, "GET");
-            String sigKey = super.makeSigKey("c17484ff357d801897828f674bb6175b4f94340516ce5bb4922def7e035", request_token_secret);
+            paramsMap.put(OAUTH_SIGNATURE, super.makeSignature(sigKey, sigData));
 
-            paramsMap.put("oauth_signature", super.makeSignature(sigKey, sigData));
-
-            URL url = new URL("https://oauth.withings.com/account/access_token?oauth_consumer_key=" + URLEncode((String) paramsMap.get("oauth_consumer_key")) + "&oauth_nonce=" + URLEncode((String) paramsMap.get("oauth_nonce")) + "&oauth_signature=" + URLEncode((String) paramsMap.get("oauth_signature")) + "&oauth_signature_method=" + URLEncode((String) paramsMap.get("oauth_signature_method")) + "&oauth_timestamp=" + URLEncode((String) paramsMap.get("oauth_timestamp")) + "&oauth_token=" + URLEncode((String) paramsMap.get("oauth_token")) + "&oauth_version=" + URLEncode((String) paramsMap.get("oauth_version")));
-
-            connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
-            connection.connect();
-            reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String[] split = extractToken(reader.readLine());
-            System.out.println("access_token=" + split[0]);
-            System.out.println("access_token_secret=" + split[1]);
-            this.session.setAttribute("wi_access_token", split[0]);
-            this.session.setAttribute("wi_access_token_secret", split[1]);
+            URL url = new URL(
+                    ACCESS_TOKEN_URL + "?"
+                    + OAUTH_CONSUMER_KEY + "=" + URLEncode((String) paramsMap.get(OAUTH_CONSUMER_KEY)) + "&"
+                    + OAUTH_NONCE + "=" + URLEncode(paramsMap.get(OAUTH_NONCE)) + "&"
+                    + OAUTH_SIGNATURE + "=" + URLEncode(paramsMap.get(OAUTH_SIGNATURE)) + "&"
+                    + OAUTH_SIGNATURE_METHOD + "=" + URLEncode(paramsMap.get(OAUTH_SIGNATURE_METHOD)) + "&"
+                    + OAUTH_TIMESTAMP + "=" + URLEncode((String) paramsMap.get(OAUTH_TIMESTAMP)) + "&"
+                    + OAUTH_TOKEN + "=" + URLEncode((String) paramsMap.get(OAUTH_TOKEN)) + "&"
+                    + OAUTH_VERSION + "=" + URLEncode((String) paramsMap.get(OAUTH_VERSION))
+            );
+            String[] split = extractToken(super.httpResponse(url, HTTP_GET));
+            this.session.setAttribute(WI_ACCESS_TOKEN, split[0]);
+            this.session.setAttribute(WI_ACCESS_TOKEN_SECRET, split[1]);
         } catch (IOException ex) {
-            ex.printStackTrace();
-        } finally {
-            if (reader != null) {
-                reader.close();
-            }
-            if (connection != null) {
-                connection.disconnect();
-            }
+
         }
     }
 
     public void getRequestToken() {
         String reqTokenResult = "";
-        String callbackUrl = utiLogic.getAbsoluteContextPath(request) + "/faces/main/callback/withings";
+        String callbackUrl = utiLogic.getAbsoluteContextPath(request) + WI_RELATIVE_CALLBACK_URL;
         try {
-            SortedMap<String, String> paramsMap = super.makeParam("f1e9bebd38c1bf97b7c58bf2f5844c9bf7c38ec50254124d4f43b8582f0f", callbackUrl);
-            String sigKey = super.makeSigKey("c17484ff357d801897828f674bb6175b4f94340516ce5bb4922def7e035", "");
-            String sigData = super.makeSigData("f1e9bebd38c1bf97b7c58bf2f5844c9bf7c38ec50254124d4f43b8582f0f", "https://oauth.withings.com/account/request_token", paramsMap, "GET");
+            SortedMap<String, String> paramsMap = super.makeParam(CONSUMER_KEY, callbackUrl);
+            String sigKey = super.makeSigKey(CONSUMER_SECRET, "");
+            String sigData = super.makeSigData(CONSUMER_KEY, REQUEST_TOKEN_URL, paramsMap, HTTP_GET);
 
-            
-            
-            reqTokenResult = getRequestToken(paramsMap, sigKey, sigData, callbackUrl, "https://oauth.withings.com/account/request_token", "GET");
-            System.out.println("reqTokenResult=" + reqTokenResult);
+            reqTokenResult = getRequestToken(paramsMap, sigKey, sigData, callbackUrl, REQUEST_TOKEN_URL, HTTP_GET);
             if (!"".equals(reqTokenResult)) {
                 String[] split = extractToken(reqTokenResult);
-                this.session.setAttribute("wi_request_token", split[0]);
-                this.session.setAttribute("wi_request_token_secret", split[1]);
+                this.session.setAttribute(WI_REQUEST_TOKEN, split[0]);
+                this.session.setAttribute(WI_REQUEST_TOKEN_SECRET, split[1]);
 
-                String request_token = this.session.getAttribute("wi_request_token").toString();
-                String request_token_secret = this.session.getAttribute("wi_request_token_secret").toString();
+                String request_token = this.session.getAttribute(WI_REQUEST_TOKEN).toString();
+                String request_token_secret = this.session.getAttribute(WI_REQUEST_TOKEN_SECRET).toString();
 
-                super.sendRedirect("f1e9bebd38c1bf97b7c58bf2f5844c9bf7c38ec50254124d4f43b8582f0f", "c17484ff357d801897828f674bb6175b4f94340516ce5bb4922def7e035", request_token, request_token_secret, "https://oauth.withings.com/account/authorize", "GET");
+                super.sendRedirect(CONSUMER_KEY, CONSUMER_SECRET, request_token, request_token_secret, AUTHORIZE_URL, HTTP_GET);
             } else {
                 System.out.println("withingsリクエストトークン失敗");
             }

@@ -175,7 +175,7 @@ public class Todoist extends SuperOauth {
         Long utc_due_date = Long.valueOf(this.utiDate.convertEndUTC(formatted));
         Long utc_today = Long.valueOf(this.utiDate.convertEndUTC(today));
         boolean complete;
-        if (utc_due_date.longValue() > utc_today.longValue()) {
+        if (utc_due_date > utc_today) {
             complete = true;
         } else {
             complete = false;

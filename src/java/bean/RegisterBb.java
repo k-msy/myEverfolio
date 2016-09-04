@@ -33,18 +33,17 @@ public class RegisterBb extends SuperBb implements Serializable {
      * @return 
      */
     public String create() {
-        this.group = new UserGroup(this.id, "user");
-        Users user = new Users(this.id, getEncodedPw(this.pw), this.name, this.group);
-        Token_withings wi_token = new Token_withings(this.id, "", "", "", "", "", "", "");
-        Token_zaim za_token = new Token_zaim(this.id, "", "", "", "", "", "");
-        Token_todoist to_token = new Token_todoist(this.id, "", "", "", "");
-        Todoist_karma karma = new Todoist_karma(this.id, "");
+        group = new UserGroup(id, "user");
+        Users user = new Users(id, getEncodedPw(pw), name, group);
+        Token_withings wi_token = new Token_withings(id, "", "", "", "", "", "", "");
+        Token_zaim za_token = new Token_zaim(id, "", "", "", "", "", "");
+        Token_todoist to_token = new Token_todoist(id, "", "", "", "");
+        Todoist_karma karma = new Todoist_karma(id, "");
         try {
-            this.db.create(user, wi_token, za_token, to_token, karma);
-
+            db.create(user, wi_token, za_token, to_token, karma);
             return "/login.xhtml?faces-redirect=true";
         } catch (Exception e) {
-            super.facesErrorMsg("������ID���������������������������������");
+            super.facesErrorMsg("IDは既に使用されています。");
         }
         return null;
     }
@@ -53,7 +52,7 @@ public class RegisterBb extends SuperBb implements Serializable {
      * 入力値のクリア
      */
     public void clear() {
-        this.id = (this.pw = this.name = null);
+        id = (pw = name = null);
     }
 
     /**
@@ -67,7 +66,7 @@ public class RegisterBb extends SuperBb implements Serializable {
     }
 
     public String getId() {
-        return this.id;
+        return id;
     }
 
     public void setId(String id) {
@@ -75,7 +74,7 @@ public class RegisterBb extends SuperBb implements Serializable {
     }
 
     public String getPw() {
-        return this.pw;
+        return pw;
     }
 
     public void setPw(String pw) {
@@ -83,7 +82,7 @@ public class RegisterBb extends SuperBb implements Serializable {
     }
 
     public String getName() {
-        return this.name;
+        return name;
     }
 
     public void setName(String name) {
@@ -91,7 +90,7 @@ public class RegisterBb extends SuperBb implements Serializable {
     }
 
     public UserGroup getGroup() {
-        return this.group;
+        return group;
     }
 
     public void setGroup(UserGroup group) {
@@ -99,7 +98,7 @@ public class RegisterBb extends SuperBb implements Serializable {
     }
 
     public RegisterDb getDb() {
-        return this.db;
+        return db;
     }
 
     public void setDb(RegisterDb db) {

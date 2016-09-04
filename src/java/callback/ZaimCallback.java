@@ -1,5 +1,7 @@
 package callback;
 
+import static constants.Const_oauth.*;
+import static constants.Const_zaim.*;
 import java.io.IOException;
 import javax.ejb.TransactionManagement;
 import javax.inject.Inject;
@@ -16,10 +18,11 @@ public class ZaimCallback extends HttpServlet {
     @Inject
     UtilLogic utiLogic;
     
+    @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         HttpSession session = request.getSession(true);
-        session.setAttribute("za_oauth_token", request.getParameter("oauth_token"));
-        session.setAttribute("za_oauth_verifier", request.getParameter("oauth_verifier"));
+        session.setAttribute(ZA_OUTH_TOKEN, request.getParameter(OAUTH_TOKEN));
+        session.setAttribute(ZA_OAUTH_VERIFIER, request.getParameter(OAUTH_VERIFIER));
         try {
             response.sendRedirect(utiLogic.getAbsoluteContextPath(request) + "/faces/main/top.xhtml?faces-redirect=true");
         } catch (IOException ex) {

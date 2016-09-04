@@ -18,11 +18,11 @@ public class WithingsDb {
     Owithings owi;
 
     public Token_withings findObj(String userId) {
-        return (Token_withings) this.em.find(Token_withings.class, userId);
+        return (Token_withings) em.find(Token_withings.class, userId);
     }
 
     public void update(HttpServletRequest request, HttpSession session) {
-        Token_withings token = (Token_withings) this.em.find(Token_withings.class, session.getAttribute("user_id").toString());
+        Token_withings token = (Token_withings) em.find(Token_withings.class, session.getAttribute("user_id").toString());
         token.setAccess_token(session.getAttribute("wi_access_token").toString());
         token.setAccess_token_secret(session.getAttribute("wi_access_token_secret").toString());
         token.setOauth_token(session.getAttribute("wi_oauth_token").toString());
@@ -33,7 +33,7 @@ public class WithingsDb {
     }
 
     public void releaseCoopWithings(HttpSession session) {
-        Token_withings token = (Token_withings) this.em.find(Token_withings.class, session.getAttribute("user_id").toString());
+        Token_withings token = (Token_withings) em.find(Token_withings.class, session.getAttribute("user_id").toString());
         token.setAccess_token("");
         token.setAccess_token_secret("");
         token.setOauth_token("");
@@ -41,7 +41,7 @@ public class WithingsDb {
         token.setRequest_token("");
         token.setRequest_token_secret("");
         token.setWi_userId("");
-        this.em.merge(token);
+        em.merge(token);
     }
 
     public void coopWithings(HttpSession session) {

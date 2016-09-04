@@ -11,6 +11,7 @@ public class Const_zaim {
     public static final String MONEY_URL = "https://api.zaim.net/v2/home/money";
     public static final String CATEGORY_URL = "https://api.zaim.net/v2/home/category";
     public static final String GENRE_URL = "https://api.zaim.net/v2/genre";
+    public static final String ZA_RELATIVE_CALLBACK_URL = "/faces/main/callback/zaim";
     public static final String ZA_REQUEST_TOKEN = "za_request_token";
     public static final String ZA_REQUEST_TOKEN_SECRET = "za_request_token_secret";
     public static final String ZA_OUTH_TOKEN = "za_oauth_token";

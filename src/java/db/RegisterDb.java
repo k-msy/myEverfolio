@@ -16,10 +16,10 @@ public class RegisterDb {
     private EntityManager em;
 
     public void create(Users users, Token_withings wi, Token_zaim zaim, Token_todoist todoist, Todoist_karma karma) {
-        this.em.persist(users);
-        this.em.persist(wi);
-        this.em.persist(zaim);
-        this.em.persist(todoist);
-        this.em.persist(karma);
+        em.persist(users);
+        em.persist(wi);
+        em.persist(zaim);
+        em.persist(todoist);
+        em.persist(karma);
     }
 }

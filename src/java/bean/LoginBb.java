@@ -1,10 +1,7 @@
 package bean;
 
+import static constants.Common.USER_ID;
 import java.io.Serializable;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Named;
 import javax.servlet.ServletException;
@@ -28,9 +25,9 @@ public class LoginBb extends SuperBb implements Serializable {
     public String login() {
         HttpServletRequest request = getRequest();
         try {
-            request.login(this.id, this.pw);
+            request.login(id, pw);
             HttpSession session = request.getSession(true);
-            session.setAttribute("user_id", this.id);
+            session.setAttribute(USER_ID, id);
                         
         } catch (ServletException ex) {
             facesErrorMsg("ログイン失敗");
