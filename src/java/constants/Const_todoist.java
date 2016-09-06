@@ -25,6 +25,14 @@ public class Const_todoist {
     public static final String TODO_DATA_DELETE = "data:delete";
     public static final String TODO_PROJECT_DELETE = "project:delete";
     public static final String TODO_TOKEN = "token";
+    public static final String TODO_ITEMS = "items";
+    public static final String TODO_DUE_DATE_UTC = "due_date_utc";
+    public static final String TODO_CONTENT = "content";
+    public static final String TODO_KARMA_MAP = "karmaMap";
+    public static final String TODO_DAYS_ITEMS = "days_items";
+    public static final String TODO_DATE = "date";
+    public static final String TODO_NEW_KARMA = "new_karma";
+    public static final String TODO_KARMA_UPDATE_REASONS = "karma_update_reasons";
     public static final String SYNC_TOKEN = "sync_token";
     public static final String RESOURCE_TYPES = "resource_types";
 }

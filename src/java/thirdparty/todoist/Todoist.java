@@ -4,15 +4,14 @@ import bean.HeaderBb;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import static constants.Common.*;
+import static constants.Const_todoist.*;
 import db.KarmaDb;
 import db.TodoistDb;
 import entity.TodoistEnti;
 import entity.Todoist_karma;
 import entity.Token_todoist;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
@@ -40,9 +39,8 @@ import view.chart.LineChart;
 @RequestScoped
 public class Todoist extends SuperOauth {
 
-    private static final String method = "GET";
     HttpServletRequest request = getRequest();
-    HttpSession session = this.request.getSession(true);
+    HttpSession session = request.getSession(true);
     @Inject
     TodoistDb db;
     @Inject
@@ -66,10 +64,10 @@ public class Todoist extends SuperOauth {
 
     public boolean changeCoop(boolean todoCoopFlg) {
         if (todoCoopFlg) {
-            this.db.releaseCoopTodoist(this.session);
+            db.releaseCoopTodoist(session);
             return false;
         }
-        this.db.coopTodoist(this.session);
+        db.coopTodoist(session);
         return true;
     }
 
@@ -83,59 +81,55 @@ public class Todoist extends SuperOauth {
     public boolean doesCooperate(HttpSession session) {
         boolean coop = true;
         if (isExistAccessToken(session)) {
-            this.headerBb.setTodoCoopFlg(true);
+            headerBb.setTodoCoopFlg(true);
             coop = true;
         } else {
-            this.headerBb.setTodoCoopFlg(false);
+            headerBb.setTodoCoopFlg(false);
             coop = false;
         }
         return coop;
     }
 
     private boolean isExistAccessToken(HttpSession session) {
-        String userId = session.getAttribute("user_id").toString();
-        this.tokenObj = this.db.findObj(userId);
+        String userId = session.getAttribute(USER_ID).toString();
+        tokenObj = db.findObj(userId);
         boolean exist = true;
-        if (("".equals(this.tokenObj.getTodo_code())) || ("".equals(this.tokenObj.getTodo_state()))) {
-            exist = this.oto.isCallback(session);
+        if (("".equals(tokenObj.getTodo_code())) || ("".equals(tokenObj.getTodo_state()))) {
+            exist = oto.isCallback(session);
         }
         return exist;
     }
 
     public void setTaskMeasures() {
-        String userId = this.session.getAttribute("user_id").toString();
-        this.tokenObj = this.db.findObj(userId);
-        String token = this.tokenObj.getAccess_token();
+        String userId = session.getAttribute(USER_ID).toString();
+        tokenObj = db.findObj(userId);
+        String token = tokenObj.getAccess_token();
         try {
-            String encodedParam = "token=" + URLEncode(token) + "&" + "sync_token" + "=" + URLEncode("'*'") + "&" + "resource_types" + "=" + URLEncode("[\"all\"]");
+            String encodedParam = TODO_TOKEN + "=" + URLEncode(token) + "&"
+                    + SYNC_TOKEN + "=" + URLEncode("'*'") + "&"
+                    + RESOURCE_TYPES + "=" + URLEncode("[\"all\"]");
 
-            System.out.println("encodedParam =" + encodedParam);
-            URL url = new URL("https://todoist.com/API/v7/sync?" + encodedParam);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("POST");
-            connection.connect();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String jsonText = reader.readLine();
-            System.out.println("Todoist_jsonText=" + jsonText);
+            URL url = new URL(RESOURCES_URL + "?" + encodedParam);
+            String jsonText = super.httpResponse(url, HTTP_POST);
 
             ObjectMapper mapper = new ObjectMapper();
             JsonNode node = (JsonNode) mapper.readValue(jsonText, JsonNode.class);
-            JsonNode itemsList = node.get("items");
+            JsonNode itemsList = node.get(TODO_ITEMS);
 
             ArrayList<String[]> taskList = new ArrayList();
             for (JsonNode itemNode : itemsList) {
-                String[] due_date = itemNode.get("due_date_utc").toString().split("\"");
+                String[] due_date = itemNode.get(TODO_DUE_DATE_UTC).toString().split("\"");
 
                 boolean complete = doesComplete(due_date[1]);
 
                 String[] item = new String[3];
                 item[0] = getCheckedIconPass(complete);
-                item[1] = this.utiDate.convertUSformatToYyyy_mm_dd(due_date[1]);
-                String[] content = itemNode.get("content").toString().split("\"");
+                item[1] = utiDate.convertUSformatToYyyy_mm_dd(due_date[1]);
+                String[] content = itemNode.get(TODO_CONTENT).toString().split("\"");
                 item[2] = content[1];
                 taskList.add(item);
             }
-            this.toEnti.setTaskList(taskList);
+            toEnti.setTaskList(taskList);
         } catch (MalformedURLException ex) {
             Logger.getLogger(Otodoist.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ProtocolException ex) {
@@ -146,11 +140,11 @@ public class Todoist extends SuperOauth {
     }
 
     public void setRangeMeasures(Date start, Date end, ArrayList<String> dayList, int dayCount) {
-        Todoist_karma karma = this.karmaDb.findObj(this.session.getAttribute("user_id").toString());
+        Todoist_karma karma = karmaDb.findObj(session.getAttribute(USER_ID).toString());
         ObjectMapper mapper = new ObjectMapper();
         try {
             JsonNode node = (JsonNode) mapper.readValue(karma.getKarma(), JsonNode.class);
-            JsonNode storedKarmaMapNode = node.get("karmaMap");
+            JsonNode storedKarmaMapNode = node.get(TODO_KARMA_MAP);
             Map<String, String> storedKarmaMap = (Map) mapper.convertValue(storedKarmaMapNode, Map.class);
 
             injectZeroDayData(dayList, storedKarmaMap);
@@ -163,17 +157,17 @@ public class Todoist extends SuperOauth {
             } else if (karmaList.size() > 31) {
                 karmaList = summarizeWeekKarma(karmaList);
             }
-            this.lineChart.setKarmaLineModel(karmaList);
+            lineChart.setKarmaLineModel(karmaList);
         } catch (IOException ex) {
             Logger.getLogger(Todoist.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     private boolean doesComplete(String due_date) {
-        String formatted = this.utiDate.convertUSformatToYyyy_mm_dd(due_date);
-        String today = this.utiDate.getTodayYyyyMmDd();
-        Long utc_due_date = Long.valueOf(this.utiDate.convertEndUTC(formatted));
-        Long utc_today = Long.valueOf(this.utiDate.convertEndUTC(today));
+        String formatted = utiDate.convertUSformatToYyyy_mm_dd(due_date);
+        String today = utiDate.getTodayYyyyMmDd();
+        Long utc_due_date = Long.valueOf(utiDate.convertEndUTC(formatted));
+        Long utc_today = Long.valueOf(utiDate.convertEndUTC(today));
         boolean complete;
         if (utc_due_date > utc_today) {
             complete = true;
@@ -192,21 +186,16 @@ public class Todoist extends SuperOauth {
 
     public void syncKarmaData() {
         try {
-            String userId = this.session.getAttribute("user_id").toString();
-            this.tokenObj = this.db.findObj(userId);
-            String token = this.tokenObj.getAccess_token();
+            String userId = session.getAttribute(USER_ID).toString();
+            tokenObj = db.findObj(userId);
+            String token = tokenObj.getAccess_token();
 
             String encodedParam = "token=" + URLEncode(token);
 
             String jsonText = "";
             try {
-                URL url = new URL("https://todoist.com/API/v7/get_productivity_stats?" + encodedParam);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod("POST");
-                connection.connect();
-                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                jsonText = reader.readLine();
-                System.out.println("Todoist_jsonText=" + jsonText);
+                URL url = new URL(PRODUCTIVITY_STATS_URL + "?" + encodedParam);
+                jsonText = super.httpResponse(url, HTTP_POST);
             } catch (MalformedURLException ex) {
                 Logger.getLogger(Todoist.class.getName()).log(Level.SEVERE, null, ex);
             } catch (IOException ex) {
@@ -214,19 +203,19 @@ public class Todoist extends SuperOauth {
             }
             ObjectMapper mapper = new ObjectMapper();
             JsonNode node = (JsonNode) mapper.readValue(jsonText, JsonNode.class);
-            JsonNode dateNode = node.get("days_items");
-            JsonNode karmaNode = node.get("karma_update_reasons");
+            JsonNode dateNode = node.get(TODO_DAYS_ITEMS);
+            JsonNode karmaNode = node.get(TODO_KARMA_UPDATE_REASONS);
             //JsonNode date;
             ArrayList<String> dateList = new ArrayList();
             for (Iterator localIterator = dateNode.iterator(); localIterator.hasNext();) {
                 JsonNode date = (JsonNode) localIterator.next();
-                String[] dateStr = date.get("date").toString().split("\"");
+                String[] dateStr = date.get(TODO_DATE).toString().split("\"");
                 dateList.add(dateStr[1]);
             }
 
             ArrayList<String> karmaList = new ArrayList();
             for (JsonNode karma : karmaNode) {
-                String karmaStr = karma.get("new_karma").toString();
+                String karmaStr = karma.get(TODO_NEW_KARMA).toString();
                 karmaList.add(karmaStr);
             }
             Map<String, String> karmaMap = new HashMap();
@@ -234,7 +223,7 @@ public class Todoist extends SuperOauth {
                 karmaMap.put(dateList.get(i), karmaList.get(i));
             }
             String diffKarma = addDiff(userId, karmaMap);
-            this.db.updateKarma(userId, diffKarma);
+            db.updateKarma(userId, diffKarma);
         } catch (IOException ex) {
             Logger.getLogger(Todoist.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -242,7 +231,7 @@ public class Todoist extends SuperOauth {
 
     private String addDiff(String userId, Map<String, String> karmaMap) {
         String updatedJson = "";
-        Todoist_karma karma = this.karmaDb.findObj(userId);
+        Todoist_karma karma = karmaDb.findObj(userId);
         ObjectMapper mapper = new ObjectMapper();
         if ("".equals(karma.getKarma())) {
             System.out.println("karma未登録");
@@ -256,7 +245,7 @@ public class Todoist extends SuperOauth {
         } else {
             try {
                 JsonNode node = (JsonNode) mapper.readValue(karma.getKarma(), JsonNode.class);
-                JsonNode storedKarmaMapNode = node.get("karmaMap");
+                JsonNode storedKarmaMapNode = node.get(TODO_KARMA_MAP);
                 Map<String, String> storedKarmaMap = (Map) mapper.convertValue(storedKarmaMapNode, Map.class);
 
                 Set<String> keySet = karmaMap.keySet();
@@ -296,7 +285,7 @@ public class Todoist extends SuperOauth {
         for (String karmaDate : storedKarmaMap.keySet()) {
             TodoistObject obj = new TodoistObject();
             obj.dateStr = karmaDate.substring(5);
-            obj.utcDate = Long.valueOf(this.utiDate.convertStartUTC(karmaDate));
+            obj.utcDate = Long.valueOf(utiDate.convertStartUTC(karmaDate));
             obj.karma = Double.valueOf((String) storedKarmaMap.get(karmaDate)).longValue();
             karmaList.add(obj);
         }

@@ -3,13 +3,13 @@ package thirdparty.zaim;
 import bean.HeaderBb;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import static constants.Common.*;
+import static constants.Const_oauth.*;
+import static constants.Const_zaim.*;
 import db.ZaimDb;
 import entity.Token_zaim;
 import entity.ZaimEnti;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -36,7 +36,6 @@ import view.chart.BarChart;
 @RequestScoped
 public class Zaim extends SuperOauth {
 
-    private static final String method = "GET";
     HttpServletRequest request = getRequest();
     HttpSession session = this.request.getSession(true);
     @Inject
@@ -69,7 +68,7 @@ public class Zaim extends SuperOauth {
     }
 
     public boolean isExistAccessToken(HttpSession session) {
-        String userId = session.getAttribute("user_id").toString();
+        String userId = session.getAttribute(USER_ID).toString();
         this.tokenObj = this.db.findObj(userId);
         boolean exist = true;
         if (("".equals(this.tokenObj.getAccess_token())) || ("".equals(this.tokenObj.getAccess_token_secret()))) {
@@ -83,19 +82,18 @@ public class Zaim extends SuperOauth {
         String to = this.utiDate.getTodayYyyyMmDd();
         try {
             String jsonText = getRawDataForMoney(from, to);
-            System.out.println("moneyJsonText=" + jsonText);
 
             ObjectMapper mapper = new ObjectMapper();
             JsonNode node = (JsonNode) mapper.readValue(jsonText, JsonNode.class);
-            JsonNode moneyNodeList = node.get("money");
+            JsonNode moneyNodeList = node.get(ZA_MONEY);
 
             ArrayList<String[]> paymentList = new ArrayList();
             ArrayList<String[]> incomeList = new ArrayList();
             for (JsonNode moneyNode : moneyNodeList) {
-                String[] mode = moneyNode.get("mode").toString().split("\"");
-                if ("payment".equals(mode[1])) {
+                String[] mode = moneyNode.get(ZA_MODE).toString().split("\"");
+                if (ZA_PAYMENT.equals(mode[1])) {
                     paymentList = addTodayPaymentList(moneyNode, paymentList);
-                } else if ("income".equals(mode[1])) {
+                } else if (ZA_INCOME.equals(mode[1])) {
                     incomeList = addTodayIncomeList(moneyNode, incomeList);
                 }
             }
@@ -113,21 +111,19 @@ public class Zaim extends SuperOauth {
             String from = this.utiDate.formatYyyyMmDd(start);
             String to = this.utiDate.formatYyyyMmDd(end);
             String jsonText = getRawDataForMoney(from, to);
-            System.out.println("moneyRangeJsonText=" + jsonText);
 
             ObjectMapper mapper = new ObjectMapper();
             JsonNode node = (JsonNode) mapper.readValue(jsonText, JsonNode.class);
-            JsonNode moneyNodeList = node.get("money");
+            JsonNode moneyNodeList = node.get(ZA_MONEY);
 
             ArrayList<ZaimObject> paymentList = new ArrayList();
             ArrayList<ZaimObject> incomeList = new ArrayList();
             for (JsonNode moneyNode : moneyNodeList) {
-                String[] mode = moneyNode.get("mode").toString().split("\"");
-                if ("payment".equals(mode[1])) {
-                    paymentList = addRangeMoneyList(moneyNode, paymentList, "payment");
-                    System.out.println("made paymentList !!");
-                } else if ("income".equals(mode[1])) {
-                    incomeList = addRangeMoneyList(moneyNode, incomeList, "income");
+                String[] mode = moneyNode.get(ZA_MODE).toString().split("\"");
+                if (ZA_PAYMENT.equals(mode[1])) {
+                    paymentList = addRangeMoneyList(moneyNode, paymentList, ZA_PAYMENT);
+                } else if (ZA_INCOME.equals(mode[1])) {
+                    incomeList = addRangeMoneyList(moneyNode, incomeList, ZA_INCOME);
                 }
             }
             injectZeroDayData(dayList, paymentList);
@@ -145,9 +141,7 @@ public class Zaim extends SuperOauth {
     }
 
     private String getRawDataForMoney(String from, String to) {
-        HttpURLConnection connection = null;
-        BufferedReader reader = null;
-        String userId = this.session.getAttribute("user_id").toString();
+        String userId = this.session.getAttribute(USER_ID).toString();
         this.tokenObj = this.db.findObj(userId);
 
         String access_token = this.tokenObj.getAccess_token();
@@ -155,66 +149,61 @@ public class Zaim extends SuperOauth {
 
         SortedMap<String, String> paramsMap = new TreeMap();
         try {
-            paramsMap.put("start_date", from);
-            paramsMap.put("end_date", to);
-            paramsMap.put("oauth_consumer_key", "b12800bf82cfe709683c9b812d35fc450efb8bc4");
-            paramsMap.put("oauth_nonce", super.getRandomChar());
-            paramsMap.put("oauth_signature_method", "HMAC-SHA1");
-            paramsMap.put("oauth_timestamp", String.valueOf(super.getUnixTime()));
-            paramsMap.put("oauth_token", access_token);
-            paramsMap.put("oauth_version", "1.0");
-            String sigKey = super.makeSigKey("6a1b7a0ad40bdbd3d9b4d0a64fb757d10a606af4", access_token_secret);
-            String sigData = super.makeSigData("b12800bf82cfe709683c9b812d35fc450efb8bc4", "https://api.zaim.net/v2/home/money", paramsMap, "GET");
+            paramsMap.put(ZA_START_DATE, from);
+            paramsMap.put(ZA_END_DATE, to);
+            paramsMap.put(OAUTH_CONSUMER_KEY, CONSUMER_KEY);
+            paramsMap.put(OAUTH_NONCE, super.getRandomChar());
+            paramsMap.put(OAUTH_SIGNATURE_METHOD, HMAC_SHA1);
+            paramsMap.put(OAUTH_TIMESTAMP, String.valueOf(super.getUnixTime()));
+            paramsMap.put(OAUTH_TOKEN, access_token);
+            paramsMap.put(OAUTH_VERSION, "1.0");
+            String sigKey = super.makeSigKey(CONSUMER_SECRET, access_token_secret);
+            String sigData = super.makeSigData(CONSUMER_KEY, MONEY_URL, paramsMap, HTTP_GET);
 
-            URL url = new URL("https://api.zaim.net/v2/home/money?start_date=" + URLEncode((String) paramsMap.get("start_date")) + "&end_date=" + URLEncode((String) paramsMap.get("end_date")) + "&oauth_consumer_key=" + URLEncode((String) paramsMap.get("oauth_consumer_key")) + "&oauth_nonce=" + URLEncode((String) paramsMap.get("oauth_nonce")) + "&oauth_signature=" + URLEncode(super.makeSignature(sigKey, sigData)) + "&oauth_signature_method=" + URLEncode((String) paramsMap.get("oauth_signature_method")) + "&oauth_timestamp=" + URLEncode((String) paramsMap.get("oauth_timestamp")) + "&oauth_token=" + URLEncode(access_token) + "&oauth_version=" + URLEncode((String) paramsMap.get("oauth_version")));
-
-            connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
-            connection.connect();
-            reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            return reader.readLine();
+            URL url = new URL(
+                    MONEY_URL + "?"
+                    + ZA_START_DATE + "=" + URLEncode(paramsMap.get(ZA_START_DATE)) + "&"
+                    + ZA_END_DATE + "=" + URLEncode(paramsMap.get(ZA_END_DATE)) + "&"
+                    + OAUTH_CONSUMER_KEY + "=" + URLEncode(paramsMap.get(OAUTH_CONSUMER_KEY)) + "&"
+                    + OAUTH_NONCE + "=" + URLEncode(paramsMap.get(OAUTH_NONCE)) + "&"
+                    + OAUTH_SIGNATURE + "=" + URLEncode(super.makeSignature(sigKey, sigData)) + "&"
+                    + OAUTH_SIGNATURE_METHOD + "=" + URLEncode(paramsMap.get(OAUTH_SIGNATURE_METHOD)) + "&"
+                    + OAUTH_TIMESTAMP + "=" + URLEncode(paramsMap.get(OAUTH_TIMESTAMP)) + "&"
+                    + OAUTH_TOKEN + "=" + URLEncode(access_token) + "&"
+                    + OAUTH_VERSION + "=" + URLEncode(paramsMap.get(OAUTH_VERSION))
+            );
+            return super.httpResponse(url, HTTP_GET);
         } catch (IOException ex) {
             ex.printStackTrace();
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException ex) {
-                    Logger.getLogger(Zaim.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-            if (connection != null) {
-                connection.disconnect();
-            }
-        }
+        } 
         return "";
     }
 
     private ArrayList<String[]> addTodayPaymentList(JsonNode moneyNode, ArrayList<String[]> paymentList) {
         String[] payment = new String[4];
         String uniqueId;
-        if ("".equals(moneyNode.get("receipt_id").toString())) {
-            uniqueId = moneyNode.get("id").toString();
+        if ("".equals(moneyNode.get(ZA_RECEIPT_ID).toString())) {
+            uniqueId = moneyNode.get(ZA_ID).toString();
         } else {
-            uniqueId = moneyNode.get("receipt_id").toString();
+            uniqueId = moneyNode.get(ZA_RECEIPT_ID).toString();
         }
         if (0 == paymentList.size()) {
             payment[0] = uniqueId;
-            payment[1] = moneyNode.get("category_id").toString();
-            payment[2] = moneyNode.get("genre_id").toString();
-            payment[3] = moneyNode.get("amount").toString();
+            payment[1] = moneyNode.get(ZA_CATEGORY_ID).toString();
+            payment[2] = moneyNode.get(ZA_GENRE_ID).toString();
+            payment[3] = moneyNode.get(ZA_AMOUNT).toString();
             paymentList.add(payment);
         } else {
             int index = this.utiLogic.getSameValueIndex(paymentList, uniqueId);
             if (0 <= index) {
                 String[] tmpPayment = (String[]) paymentList.get(index);
-                tmpPayment[3] = String.valueOf(Long.valueOf(tmpPayment[3]) + moneyNode.get("amount").asLong());
+                tmpPayment[3] = String.valueOf(Long.valueOf(tmpPayment[3]) + moneyNode.get(ZA_AMOUNT).asLong());
                 paymentList.set(index, tmpPayment);
             } else {
                 payment[0] = uniqueId;
-                payment[1] = moneyNode.get("category_id").toString();
-                payment[2] = moneyNode.get("genre_id").toString();
-                payment[3] = moneyNode.get("amount").toString();
+                payment[1] = moneyNode.get(ZA_CATEGORY_ID).toString();
+                payment[2] = moneyNode.get(ZA_GENRE_ID).toString();
+                payment[3] = moneyNode.get(ZA_AMOUNT).toString();
                 paymentList.add(payment);
             }
         }
@@ -224,9 +213,9 @@ public class Zaim extends SuperOauth {
     private ArrayList<String[]> addTodayIncomeList(JsonNode moneyNode, ArrayList<String[]> incomeList) {
         String[] income = new String[3];
 
-        income[0] = moneyNode.get("category_id").toString();
-        income[1] = moneyNode.get("genre_id").toString();
-        income[2] = moneyNode.get("amount").toString();
+        income[0] = moneyNode.get(ZA_CATEGORY_ID).toString();
+        income[1] = moneyNode.get(ZA_GENRE_ID).toString();
+        income[2] = moneyNode.get(ZA_AMOUNT).toString();
 
         incomeList.add(income);
 
@@ -236,43 +225,43 @@ public class Zaim extends SuperOauth {
     private ArrayList<ZaimObject> addRangeMoneyList(JsonNode moneyNode, ArrayList<ZaimObject> moneyList, String type) {
         ZaimObject obj = new ZaimObject();
 
-        String[] dateStr = moneyNode.get("date").toString().split("\"");
+        String[] dateStr = moneyNode.get(ZA_DATE).toString().split("\"");
         String yyyy_mm_dd = dateStr[1];
-        if (type.equals("payment")) {
+        if (type.equals(ZA_PAYMENT)) {
             if (0 == moneyList.size()) {
                 obj.dateStr = yyyy_mm_dd.substring(5);
                 obj.utcDate = Long.valueOf(this.utiDate.convertStartUTC(yyyy_mm_dd));
-                obj.payment = moneyNode.get("amount").asInt();
+                obj.payment = moneyNode.get(ZA_AMOUNT).asInt();
                 moneyList.add(obj);
             } else {
                 int index = getSameValueIndex(moneyList, yyyy_mm_dd.substring(5));
                 if (0 <= index) {
                     ZaimObject tmp = (ZaimObject) moneyList.get(index);
-                    tmp.payment += moneyNode.get("amount").asInt();
+                    tmp.payment += moneyNode.get(ZA_AMOUNT).asInt();
                     moneyList.set(index, tmp);
                 } else {
                     obj.dateStr = yyyy_mm_dd.substring(5);
                     obj.utcDate = Long.valueOf(this.utiDate.convertStartUTC(yyyy_mm_dd));
-                    obj.payment = moneyNode.get("amount").asInt();
+                    obj.payment = moneyNode.get(ZA_AMOUNT).asInt();
                     moneyList.add(obj);
                 }
             }
-        } else if (type.equals("income")) {
+        } else if (type.equals(ZA_INCOME)) {
             if (0 == moneyList.size()) {
                 obj.dateStr = yyyy_mm_dd.substring(5);
                 obj.utcDate = Long.valueOf(this.utiDate.convertStartUTC(yyyy_mm_dd));
-                obj.income = moneyNode.get("amount").asInt();
+                obj.income = moneyNode.get(ZA_AMOUNT).asInt();
                 moneyList.add(obj);
             } else {
                 int index = getSameValueIndex(moneyList, yyyy_mm_dd.substring(5));
                 if (0 <= index) {
                     ZaimObject tmp = (ZaimObject) moneyList.get(index);
-                    tmp.payment += moneyNode.get("amount").asInt();
+                    tmp.payment += moneyNode.get(ZA_AMOUNT).asInt();
                     moneyList.set(index, tmp);
                 } else {
                     obj.dateStr = yyyy_mm_dd.substring(5);
                     obj.utcDate = Long.valueOf(this.utiDate.convertStartUTC(yyyy_mm_dd));
-                    obj.income = moneyNode.get("amount").asInt();
+                    obj.income = moneyNode.get(ZA_AMOUNT).asInt();
                     moneyList.add(obj);
                 }
             }

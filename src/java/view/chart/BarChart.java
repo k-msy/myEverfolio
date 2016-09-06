@@ -17,8 +17,7 @@ import util.UtilChart;
 
 @Named
 @SessionScoped
-public class BarChart
-        implements Serializable {
+public class BarChart implements Serializable {
 
     private BarChartModel wiModel;
     private BarChartModel togglModel;

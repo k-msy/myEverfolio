@@ -16,8 +16,7 @@ import util.UtilChart;
 
 @Named
 @SessionScoped
-public class LineChart
-        implements Serializable {
+public class LineChart implements Serializable {
 
     private LineChartModel wi_model;
     private LineChartModel todo_model;

@@ -37,5 +37,4 @@ public class CalendarView implements Serializable {
     public void setTo(Date to) {
         this.to = to;
     }
-
 }

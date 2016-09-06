@@ -5,7 +5,7 @@ public class WithingsObject {
     String dateStr = "";
     int steps = 0;
     long utcDate = 0L;
-    Double weight = Double.valueOf(0.0D);
+    Double weight = 0.0D;
 
     public String getDateStr() {
         return this.dateStr;

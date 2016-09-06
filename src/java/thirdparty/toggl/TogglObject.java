@@ -23,10 +23,10 @@ public class TogglObject {
     }
 
     public Long getDuration() {
-        return Long.valueOf(this.duration);
+        return this.duration;
     }
 
     public void setDuration(Long duration) {
-        this.duration = duration.longValue();
+        this.duration = duration;
     }
 }

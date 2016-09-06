@@ -1,6 +1,7 @@
 package thirdparty.toggl;
 
 import ch.simas.jtoggl.*;
+import static constants.Const_toggl.*;
 import java.io.IOException;
 import java.time.*;
 import java.util.*;
@@ -15,11 +16,6 @@ import view.chart.BarChart;
 public class Toggl extends SuperOauth {
 
     private static JToggl jToggl;
-    private static TimeEntry timeEntry;
-    private static Client client;
-    private static Project project;
-    private static Task task;
-    private static Workspace workspace;
     @Inject
     UtilDate utiDate;
     @Inject
@@ -28,11 +24,9 @@ public class Toggl extends SuperOauth {
     UtilLogic utiLogic;
 
     public Toggl() {
-        jToggl = new JToggl("101872f22ff214f3902d2e9ae565264c", "api_token");
+        jToggl = new JToggl(TOGGL_API_TOKEN, API_TOKEN);
         jToggl.setThrottlePeriod(500L);
         jToggl.switchLoggingOn();
-        List<Workspace> workspaces = jToggl.getWorkspaces();
-        workspace = (Workspace) workspaces.get(0);
     }
 
     public ArrayList<String[]> getTodayDuration() throws IOException {

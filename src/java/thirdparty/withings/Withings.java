@@ -3,12 +3,14 @@ package thirdparty.withings;
 import bean.HeaderBb;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import static constants.Common.*;
+import static constants.Const_oauth.*;
+import static constants.Const_withings.*;
 import db.WithingsDb;
 import entity.Token_withings;
 import entity.WithingsEnti;
 import java.io.*;
 import java.math.BigDecimal;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.*;
 import java.util.logging.Level;
@@ -27,7 +29,6 @@ import view.chart.LineChart;
 @RequestScoped
 public class Withings extends SuperOauth {
 
-    private static final String method = "GET";
     HttpServletRequest request = getRequest();
     HttpSession session = this.request.getSession(true);
     @Inject
@@ -47,11 +48,8 @@ public class Withings extends SuperOauth {
     @EJB
     WithingsDb db;
 
-    private String getRawDataForSteps(String from, String to)
-            throws IOException {
-        HttpURLConnection connection = null;
-        BufferedReader reader = null;
-        String userId = this.session.getAttribute("user_id").toString();
+    private String getRawDataForSteps(String from, String to) throws IOException {
+        String userId = this.session.getAttribute(USER_ID).toString();
         this.tokenObj = this.db.findObj(userId);
         String access_token = this.tokenObj.getAccess_token();
         String access_token_secret = this.tokenObj.getAccess_token_secret();
@@ -59,41 +57,37 @@ public class Withings extends SuperOauth {
 
         SortedMap<String, String> paramsMap = new TreeMap();
         try {
-            paramsMap.put("action", "getactivity");
-            paramsMap.put("startdateymd", from);
-            paramsMap.put("enddateymd", to);
-            paramsMap.put("oauth_consumer_key", "f1e9bebd38c1bf97b7c58bf2f5844c9bf7c38ec50254124d4f43b8582f0f");
-            paramsMap.put("oauth_nonce", super.getRandomChar());
-            paramsMap.put("oauth_timestamp", String.valueOf(super.getUnixTime()));
-            paramsMap.put("oauth_token", access_token);
-            paramsMap.put("oauth_signature_method", "HMAC-SHA1");
-            paramsMap.put("oauth_version", "1.0");
-            paramsMap.put("userid", USER_ID);
+            paramsMap.put(WI_ACTION, WI_GET_ACTIVITY);
+            paramsMap.put(WI_STARTDATE_YMD, from);
+            paramsMap.put(WI_ENDDATE_YMD, to);
+            paramsMap.put(OAUTH_CONSUMER_KEY, CONSUMER_KEY);
+            paramsMap.put(OAUTH_NONCE, super.getRandomChar());
+            paramsMap.put(OAUTH_TIMESTAMP, String.valueOf(super.getUnixTime()));
+            paramsMap.put(OAUTH_TOKEN, access_token);
+            paramsMap.put(OAUTH_SIGNATURE_METHOD, HMAC_SHA1);
+            paramsMap.put(OAUTH_VERSION, "1.0");
+            paramsMap.put(OAUTH_USERID, USER_ID);
 
-            String sigData = super.makeSigData("f1e9bebd38c1bf97b7c58bf2f5844c9bf7c38ec50254124d4f43b8582f0f", "https://wbsapi.withings.net/v2/measure", paramsMap, "GET");
+            String sigData = super.makeSigData(CONSUMER_KEY, BODY_MEASURES_URL, paramsMap, HTTP_GET);
+            String sigKey = super.makeSigKey(CONSUMER_SECRET, access_token_secret);
 
-            String sigKey = super.makeSigKey("c17484ff357d801897828f674bb6175b4f94340516ce5bb4922def7e035", access_token_secret);
-
-            URL url = new URL("https://wbsapi.withings.net/v2/measure?action=getactivity&userid=" + URLEncode(USER_ID) + "&startdateymd=" + URLEncode((String) paramsMap.get("startdateymd")) + "&enddateymd=" + URLEncode((String) paramsMap.get("enddateymd")) + "&oauth_consumer_key=" + URLEncode((String) paramsMap.get("oauth_consumer_key")) + "&oauth_nonce=" + URLEncode((String) paramsMap.get("oauth_nonce")) + "&oauth_signature=" + URLEncode(super.makeSignature(sigKey, sigData)) + "&oauth_signature_method=" + URLEncode((String) paramsMap.get("oauth_signature_method")) + "&oauth_timestamp=" + URLEncode((String) paramsMap.get("oauth_timestamp")) + "&oauth_token=" + URLEncode(access_token) + "&oauth_version=" + URLEncode((String) paramsMap.get("oauth_version")));
-
-            connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
-            connection.connect();
-            reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-
-            String text = reader.readLine();
-            System.out.println("text=" + text);
-
-            return text;
+            URL url = new URL(
+                    BODY_MEASURES_URL + "?"
+                    + WI_ACTION + "=" + WI_GET_ACTIVITY + "&"
+                    + OAUTH_USERID + "=" + URLEncode(USER_ID) + "&"
+                    + WI_STARTDATE_YMD + "=" + URLEncode(paramsMap.get(WI_STARTDATE_YMD)) + "&"
+                    + WI_ENDDATE_YMD + "=" + URLEncode(paramsMap.get(WI_ENDDATE_YMD)) + "&"
+                    + OAUTH_CONSUMER_KEY + "=" + URLEncode(paramsMap.get(OAUTH_CONSUMER_KEY)) + "&"
+                    + OAUTH_NONCE + "=" + URLEncode(paramsMap.get(OAUTH_NONCE)) + "&"
+                    + OAUTH_SIGNATURE + "=" + URLEncode(super.makeSignature(sigKey, sigData)) + "&"
+                    + OAUTH_SIGNATURE_METHOD + "=" + URLEncode(paramsMap.get(OAUTH_SIGNATURE_METHOD)) + "&"
+                    + OAUTH_TIMESTAMP + "=" + URLEncode(paramsMap.get(OAUTH_TIMESTAMP)) + "&"
+                    + OAUTH_TOKEN + "=" + URLEncode(access_token) + "&"
+                    + OAUTH_VERSION + "=" + URLEncode(paramsMap.get(OAUTH_VERSION))
+            );
+            return super.httpResponse(url, HTTP_GET);
         } catch (IOException ex) {
             ex.printStackTrace();
-        } finally {
-            if (reader != null) {
-                reader.close();
-            }
-            if (connection != null) {
-                connection.disconnect();
-            }
         }
         return "";
     }
@@ -107,33 +101,27 @@ public class Withings extends SuperOauth {
 
         ObjectMapper mapper = new ObjectMapper();
         JsonNode node = (JsonNode) mapper.readValue(jsonText, JsonNode.class);
-
-        String updateTime = node.get("body").get("updatetime").toString();
-
-        JsonNode measuregrps = node.get("body").get("measuregrps");
+        JsonNode measuregrps = node.get(WI_BODY).get(WI_MEASURE_GRPS);
 
         ArrayList<Double> weightList = new ArrayList();
         for (JsonNode measures : measuregrps) {
-            Double value = measures.get("measures").get(0).get("value").asDouble();
-            System.out.println("value =" + String.valueOf(value));
-            for (int unit = measures.get("measures").get(0).get("unit").asInt(); unit < 0; unit++) {
+            Double value = measures.get(WI_MEASURES).get(0).get(WI_VALUE).asDouble();
+            for (int unit = measures.get(WI_MEASURES).get(0).get(WI_UNIT).asInt(); unit < 0; unit++) {
                 value = value / 10.0D;
             }
             weightList.add(value);
-            System.out.println("realValue =" + String.valueOf(value));
         }
         if (weightList.size() < 0) {
             System.out.println("体重計に乗りましょう");
         } else if (weightList.size() == 1) {
-            Double current = (Double) weightList.get(0);
+            Double current = weightList.get(0);
             this.wiEnti.setCurrentWeight(String.valueOf(current));
             setWeightIconPass(0.0D);
         } else if (weightList.size() >= 2) {
-            Double current = (Double) weightList.get(0);
-            Double past = (Double) weightList.get(1);
+            Double current = weightList.get(0);
+            Double past = weightList.get(1);
             BigDecimal difference = new BigDecimal(current - past);
             difference = difference.setScale(1, 1);
-            System.out.println("difference =" + String.valueOf(difference.doubleValue()));
             this.wiEnti.setPastWeight(String.valueOf(past));
             this.wiEnti.setCurrentWeight(String.valueOf(current));
             setWeightIconPass(difference.doubleValue());
@@ -150,21 +138,21 @@ public class Withings extends SuperOauth {
         } catch (IOException ex) {
             Logger.getLogger(Withings.class.getName()).log(Level.SEVERE, null, ex);
         }
-        JsonNode measuregrps = node.get("body").get("measuregrps");
+        JsonNode measuregrps = node.get(WI_BODY).get(WI_MEASURE_GRPS);
 
         ArrayList<WithingsObject> weightList = new ArrayList();
         ArrayList<String> dupliDateList = new ArrayList();
         for (JsonNode measures : measuregrps) {
-            String date = this.utiDate.convertUtcToYyyyMmDd(measures.get("date").toString());
+            String date = this.utiDate.convertUtcToYyyyMmDd(measures.get(WI_DATE).toString());
             date = date.substring(5);
             if (!existsDuplicate(dupliDateList, date)) {
                 dupliDateList.add(date);
 
                 WithingsObject wiObj = new WithingsObject();
-                wiObj.utcDate = measures.get("date").longValue();
+                wiObj.utcDate = measures.get(WI_DATE).longValue();
                 wiObj.dateStr = date;
-                Double value = measures.get("measures").get(0).get("value").asDouble();
-                for (int unit = measures.get("measures").get(0).get("unit").asInt(); unit < 0; unit++) {
+                Double value = measures.get(WI_MEASURES).get(0).get(WI_VALUE).asDouble();
+                for (int unit = measures.get(WI_MEASURES).get(0).get(WI_UNIT).asInt(); unit < 0; unit++) {
                     value = value / 10.0D;
                 }
                 wiObj.weight = value;
@@ -184,15 +172,13 @@ public class Withings extends SuperOauth {
     private Map<String, String> adjustSteps(String rawDataForSteps) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode node = (JsonNode) mapper.readValue(rawDataForSteps, JsonNode.class);
-        JsonNode activities = node.get("body").get("activities");
+        JsonNode activities = node.get(WI_BODY).get(WI_ACTIVITIES);
 
         ArrayList<Integer> stepList = new ArrayList();
         for (JsonNode activity : activities) {
-            stepList.add(activity.get("steps").asInt());
+            stepList.add(activity.get(WI_STEPS).asInt());
         }
-        Object stepsMap = new HashMap();
-        stepsMap = setStepsMap(stepList);
-
+        Object stepsMap = setStepsMap(stepList);
         return (Map<String, String>) stepsMap;
     }
 
@@ -201,13 +187,12 @@ public class Withings extends SuperOauth {
         String today = this.utiDate.getTodayYyyyMmDd();
 
         String rawDataForSteps = getRawDataForSteps(yesterday, today);
-        Map<String, String> stepsMap = new HashMap();
-        stepsMap = adjustSteps(rawDataForSteps);
-        this.wiEnti.setYesterdaySteps((String) stepsMap.get("yesterday"));
-        this.wiEnti.setTodaySteps((String) stepsMap.get("today"));
-        this.wiEnti.setDifferenceSteps((String) stepsMap.get("difference"));
-        this.wiEnti.setStepArrowIconPass((String) stepsMap.get("arrowIcon"));
-        this.wiEnti.setStepEmoIconPass((String) stepsMap.get("emoIcon"));
+        Map<String, String> stepsMap = adjustSteps(rawDataForSteps);
+        this.wiEnti.setYesterdaySteps(stepsMap.get(WI_YESTERDAY));
+        this.wiEnti.setTodaySteps(stepsMap.get(WI_TODAY));
+        this.wiEnti.setDifferenceSteps(stepsMap.get(WI_DIFFERENCE));
+        this.wiEnti.setStepArrowIconPass(stepsMap.get(WI_ARROW_ICON));
+        this.wiEnti.setStepEmoIconPass(stepsMap.get(WI_EMO_ICON));
     }
 
     public void setRangeMeasures(String from, String to, ArrayList<String> dayList, int dayCount) {
@@ -225,17 +210,17 @@ public class Withings extends SuperOauth {
     private Map<String, String> setStepIconPass(Map<String, String> stepsMap, String diffrence) {
         int diff = Integer.valueOf(diffrence);
         if (0 > diff) {
-            stepsMap.put("difference", diffrence);
-            stepsMap.put("arrowIcon", "../img/negative_down.png");
-            stepsMap.put("emoIcon", "../img/bad.png");
+            stepsMap.put(WI_DIFFERENCE, diffrence);
+            stepsMap.put(WI_ARROW_ICON, ICONPATH_NEGATIVE_ARROW);
+            stepsMap.put(WI_EMO_ICON, ICONPATH_BAD);
         } else if (0 == diff) {
-            stepsMap.put("difference", diffrence);
-            stepsMap.put("arrowIcon", "../img/neutralArrow.png");
-            stepsMap.put("emoIcon", "../img/neutralEmo.png");
+            stepsMap.put(WI_DIFFERENCE, diffrence);
+            stepsMap.put(WI_ARROW_ICON, ICONPATH_NATURAL_ARROW);
+            stepsMap.put(WI_EMO_ICON, ICONPATH_NATURAL);
         } else if (0 < diff) {
-            stepsMap.put("difference", "+" + diffrence);
-            stepsMap.put("arrowIcon", "../img/positive_up.png");
-            stepsMap.put("emoIcon", "../img/good.png");
+            stepsMap.put(WI_DIFFERENCE, "+" + diffrence);
+            stepsMap.put(WI_ARROW_ICON, ICONPATH_POSITIVE_ARROW);
+            stepsMap.put(WI_EMO_ICON, ICONPATH_GOOD);
         }
         return stepsMap;
     }
@@ -243,21 +228,23 @@ public class Withings extends SuperOauth {
     private void setWeightIconPass(Double diff) {
         if (0.0D > diff) {
             this.wiEnti.setDifferenceWeight(String.valueOf(diff));
-            this.wiEnti.setWeightArrowIconPass("../img/positive_down.png");
-            this.wiEnti.setWeightEmoIconPass("../img/good.png");
-        } else if (0.0D != diff) if (0.0D >= diff) {
-            this.wiEnti.setDifferenceWeight(String.valueOf(diff));
-            this.wiEnti.setWeightArrowIconPass("../img/neutralArrow.png");
-            this.wiEnti.setWeightEmoIconPass("../img/neutralEmo.png");
-        } else {
-            this.wiEnti.setDifferenceWeight("+" + String.valueOf(diff));
-            this.wiEnti.setWeightArrowIconPass("../img/negative_up.png");
-            this.wiEnti.setWeightEmoIconPass("../img/bad.png");
+            this.wiEnti.setWeightArrowIconPass(ICONPATH_POSITIVE_DOWN_ARROW);
+            this.wiEnti.setWeightEmoIconPass(ICONPATH_GOOD);
+        } else if (0.0D != diff) {
+            if (0.0D >= diff) {
+                this.wiEnti.setDifferenceWeight(String.valueOf(diff));
+                this.wiEnti.setWeightArrowIconPass(ICONPATH_NATURAL_ARROW);
+                this.wiEnti.setWeightEmoIconPass(ICONPATH_NATURAL);
+            } else {
+                this.wiEnti.setDifferenceWeight("+" + String.valueOf(diff));
+                this.wiEnti.setWeightArrowIconPass(ICONPATH_NEGATIVE_UP_ARROW);
+                this.wiEnti.setWeightEmoIconPass(ICONPATH_BAD);
+            }
         }
     }
 
     public boolean isExistAccessToken(HttpSession session) {
-        String userId = session.getAttribute("user_id").toString();
+        String userId = session.getAttribute(USER_ID).toString();
         this.tokenObj = this.db.findObj(userId);
         boolean exist = true;
         if (("".equals(this.tokenObj.getAccess_token())) || ("".equals(this.tokenObj.getAccess_token_secret()))) {
@@ -274,12 +261,12 @@ public class Withings extends SuperOauth {
 
             ObjectMapper mapper = new ObjectMapper();
             JsonNode node = (JsonNode) mapper.readValue(jsonText, JsonNode.class);
-            JsonNode activities = node.get("body").get("activities");
+            JsonNode activities = node.get(WI_BODY).get(WI_ACTIVITIES);
             for (JsonNode activity : activities) {
                 WithingsObject wiObj = new WithingsObject();
-                String[] date = activity.get("date").toString().split("\"");
+                String[] date = activity.get(WI_DATE).toString().split("\"");
                 wiObj.dateStr = date[1].substring(5);
-                wiObj.steps = activity.get("steps").asInt();
+                wiObj.steps = activity.get(WI_STEPS).asInt();
                 wiObj.utcDate = Long.valueOf(this.utiDate.convertStartUTC(date[1]));
                 stepList.add(wiObj);
             }
@@ -314,8 +301,8 @@ public class Withings extends SuperOauth {
             diffrence = String.valueOf(today - yesterday);
         }
         Map<String, String> stepsMap = new HashMap();
-        stepsMap.put("yesterday", String.valueOf(yesterday));
-        stepsMap.put("today", String.valueOf(today));
+        stepsMap.put(WI_YESTERDAY, String.valueOf(yesterday));
+        stepsMap.put(WI_TODAY, String.valueOf(today));
         stepsMap = setStepIconPass(stepsMap, diffrence);
 
         return stepsMap;
@@ -324,9 +311,7 @@ public class Withings extends SuperOauth {
     private String getWeightJsonData(String from, String to) {
         String utcFrom = this.utiDate.convertStartUTC(from);
         String utcEnd = this.utiDate.convertEndUTC(to);
-        HttpURLConnection connection = null;
-        BufferedReader reader = null;
-        String userId = this.session.getAttribute("user_id").toString();
+        String userId = this.session.getAttribute(USER_ID).toString();
         this.tokenObj = this.db.findObj(userId);
         String USER_ID = this.tokenObj.getWi_userId();
         String ACCESS_TOKEN = this.tokenObj.getAccess_token();
@@ -334,43 +319,40 @@ public class Withings extends SuperOauth {
 
         SortedMap<String, String> paramsMap = new TreeMap();
         try {
-            paramsMap.put("action", "getmeas");
-            paramsMap.put("userid", USER_ID);
-            paramsMap.put("startdate", utcFrom);
-            paramsMap.put("enddate", utcEnd);
-            paramsMap.put("meastype", "1");
-            paramsMap.put("oauth_consumer_key", "f1e9bebd38c1bf97b7c58bf2f5844c9bf7c38ec50254124d4f43b8582f0f");
-            paramsMap.put("oauth_nonce", super.getRandomChar());
-            paramsMap.put("oauth_signature_method", "HMAC-SHA1");
-            paramsMap.put("oauth_timestamp", String.valueOf(super.getUnixTime()));
-            paramsMap.put("oauth_token", ACCESS_TOKEN);
-            paramsMap.put("oauth_version", "1.0");
+            paramsMap.put(WI_ACTION, WI_GETMEAS);
+            paramsMap.put(OAUTH_USERID, USER_ID);
+            paramsMap.put(WI_STARTDATE, utcFrom);
+            paramsMap.put(WI_ENDDATE, utcEnd);
+            paramsMap.put(WI_MEAS_TYPE, "1");
+            paramsMap.put(OAUTH_CONSUMER_KEY, CONSUMER_KEY);
+            paramsMap.put(OAUTH_NONCE, super.getRandomChar());
+            paramsMap.put(OAUTH_SIGNATURE_METHOD, HMAC_SHA1);
+            paramsMap.put(OAUTH_TIMESTAMP, String.valueOf(super.getUnixTime()));
+            paramsMap.put(OAUTH_TOKEN, ACCESS_TOKEN);
+            paramsMap.put(OAUTH_TOKEN, "1.0");
 
-            String sigData = super.makeSigData("f1e9bebd38c1bf97b7c58bf2f5844c9bf7c38ec50254124d4f43b8582f0f", "https://wbsapi.withings.net/measure", paramsMap, "GET");
+            String sigData = super.makeSigData(CONSUMER_KEY, WEIGHT_MEASURES_URL, paramsMap, HTTP_GET);
 
-            String sigKey = super.makeSigKey("c17484ff357d801897828f674bb6175b4f94340516ce5bb4922def7e035", ACCESS_TOKEN_SECRET);
+            String sigKey = super.makeSigKey(CONSUMER_SECRET, ACCESS_TOKEN_SECRET);
 
-            URL url = new URL("https://wbsapi.withings.net/measure?action=getmeas&userid=" + URLEncode(USER_ID) + "&startdate=" + URLEncode((String) paramsMap.get("startdate")) + "&enddate=" + URLEncode((String) paramsMap.get("enddate")) + "&meastype=" + URLEncode((String) paramsMap.get("meastype")) + "&oauth_consumer_key=" + URLEncode((String) paramsMap.get("oauth_consumer_key")) + "&oauth_nonce=" + URLEncode((String) paramsMap.get("oauth_nonce")) + "&oauth_signature=" + URLEncode(super.makeSignature(sigKey, sigData)) + "&oauth_signature_method=" + URLEncode((String) paramsMap.get("oauth_signature_method")) + "&oauth_timestamp=" + URLEncode((String) paramsMap.get("oauth_timestamp")) + "&oauth_token=" + URLEncode(ACCESS_TOKEN) + "&oauth_version=" + URLEncode((String) paramsMap.get("oauth_version")));
-
-            connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
-            connection.connect();
-            reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-
-            return reader.readLine();
+            URL url = new URL(
+                    WEIGHT_MEASURES_URL + "?"
+                    + WI_ACTION + "=" + WI_GETMEAS + "&"
+                    + OAUTH_USERID + "=" + URLEncode(USER_ID) + "&"
+                    + WI_STARTDATE + "=" + URLEncode(paramsMap.get(WI_STARTDATE)) + "&"
+                    + WI_ENDDATE + "=" + URLEncode(paramsMap.get(WI_ENDDATE)) + "&"
+                    + WI_MEAS_TYPE + "=" + URLEncode(paramsMap.get(WI_MEAS_TYPE)) + "&"
+                    + OAUTH_CONSUMER_KEY + "=" + URLEncode(paramsMap.get(OAUTH_CONSUMER_KEY)) + "&"
+                    + OAUTH_NONCE + "=" + URLEncode(paramsMap.get(OAUTH_NONCE)) + "&"
+                    + OAUTH_SIGNATURE + "=" + URLEncode(super.makeSignature(sigKey, sigData)) + "&"
+                    + OAUTH_SIGNATURE_METHOD + "=" + URLEncode(paramsMap.get(OAUTH_SIGNATURE_METHOD)) + "&"
+                    + OAUTH_TIMESTAMP + "=" + URLEncode(paramsMap.get(OAUTH_TIMESTAMP)) + "&"
+                    + OAUTH_TOKEN + "=" + URLEncode(ACCESS_TOKEN) + "&"
+                    + OAUTH_VERSION + "=" + URLEncode(paramsMap.get(OAUTH_TOKEN))
+            );
+            return super.httpResponse(url, HTTP_GET);
         } catch (IOException ex) {
             ex.printStackTrace();
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException ex) {
-                    Logger.getLogger(Withings.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-            if (connection != null) {
-                connection.disconnect();
-            }
         }
         return "";
     }

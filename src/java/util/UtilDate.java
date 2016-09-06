@@ -49,20 +49,17 @@ public class UtilDate {
     public String convertStartUTC(String from) {
         LocalDate date = LocalDate.parse(from, this.formatter);
         ZonedDateTime d = date.atStartOfDay(ZoneId.systemDefault()).truncatedTo(ChronoUnit.DAYS);
-        System.out.println("start=" + String.valueOf(d.toEpochSecond()));
         return String.valueOf(d.toEpochSecond());
     }
 
     public String convertEndUTC(String to) {
         LocalDate date = LocalDate.parse(to, this.formatter);
         ZonedDateTime d = date.atStartOfDay(ZoneId.systemDefault()).truncatedTo(ChronoUnit.DAYS);
-        System.out.println("end=" + String.valueOf(d.toEpochSecond() + 86399L));
         return String.valueOf(d.toEpochSecond() + 86399L);
     }
 
     public String convertUtcToYyyyMmDd(String utc) {
         Date date = new Date(Long.valueOf(utc) * 1000L);
-
         return formatYyyyMmDd(date);
     }
 
@@ -116,7 +113,6 @@ public class UtilDate {
 
     public String convertUSformatToYyyy_mm_dd(String due_date) {
         SimpleDateFormat sdf = new SimpleDateFormat("EEE dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
-
         String formatted = "";
         try {
             Date date = sdf.parse(due_date);
@@ -141,7 +137,6 @@ public class UtilDate {
         ArrayList<String> summarizedDayList = new ArrayList();
         for (int i = 0; i < dayList.size(); i++) {
             String start = (String) dayList.get(i);
-            int sum = 0;
             for (int j = 0; j < 7; j++) {
                 if (i > dayList.size()) {
                     break;
