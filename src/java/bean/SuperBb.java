@@ -1,8 +1,6 @@
 package bean;
 
 import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import javax.enterprise.context.Dependent;
 import javax.faces.application.FacesMessage;
 import javax.faces.context.ExternalContext;
@@ -33,19 +31,5 @@ public class SuperBb implements Serializable {
         FacesMessage msg = new FacesMessage(s);
         msg.setSeverity(FacesMessage.SEVERITY_ERROR);
         FacesContext.getCurrentInstance().addMessage(null, msg);
-    }
-
-    /**
-     * 文字列をUTF-8でエンコードする
-     * @param str
-     * @return 
-     */
-    protected String URLEncode(String str) {
-        try {
-            str = URLEncoder.encode(str, "UTF-8");
-        } catch (UnsupportedEncodingException ex) {
-            System.out.println("UnsupportedEncodingException");
-        }
-        return str;
     }
 }

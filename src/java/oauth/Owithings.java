@@ -85,7 +85,7 @@ public class Owithings extends SuperOauth {
     }
 
     public void getRequestToken() {
-        String reqTokenResult = "";
+        String reqTokenResult;
         String callbackUrl = utiLogic.getAbsoluteContextPath(request) + WI_RELATIVE_CALLBACK_URL;
         try {
             SortedMap<String, String> paramsMap = super.makeParam(CONSUMER_KEY, callbackUrl);

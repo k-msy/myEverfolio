@@ -79,7 +79,7 @@ public class Todoist extends SuperOauth {
     }
 
     public boolean doesCooperate(HttpSession session) {
-        boolean coop = true;
+        boolean coop;
         if (isExistAccessToken(session)) {
             headerBb.setTodoCoopFlg(true);
             coop = true;
@@ -169,11 +169,7 @@ public class Todoist extends SuperOauth {
         Long utc_due_date = Long.valueOf(utiDate.convertEndUTC(formatted));
         Long utc_today = Long.valueOf(utiDate.convertEndUTC(today));
         boolean complete;
-        if (utc_due_date > utc_today) {
-            complete = true;
-        } else {
-            complete = false;
-        }
+        complete = utc_due_date > utc_today;
         return complete;
     }
 

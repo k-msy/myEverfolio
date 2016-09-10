@@ -256,7 +256,7 @@ public class Withings extends SuperOauth {
     private ArrayList<WithingsObject> getRangeStepMeasures(String from, String to, ArrayList<String> dayList, int dayCount) {
         ArrayList<WithingsObject> stepList = new ArrayList();
         try {
-            String jsonText = "";
+            String jsonText;
             jsonText = getRawDataForSteps(from, to);
 
             ObjectMapper mapper = new ObjectMapper();
@@ -358,7 +358,7 @@ public class Withings extends SuperOauth {
     }
 
     public boolean doesCooperate(HttpSession session) {
-        boolean coop = false;
+        boolean coop;
         if (isExistAccessToken(session)) {
             this.headerBb.setWiCoopFlg(true);
             coop = true;
@@ -379,10 +379,7 @@ public class Withings extends SuperOauth {
     }
 
     public boolean cancelChangeCoop(boolean wiCoopFlg) {
-        if (wiCoopFlg) {
-            return false;
-        }
-        return true;
+        return !wiCoopFlg;
     }
 
     private ArrayList<WithingsObject> summarizeWeekStep(ArrayList<WithingsObject> stepList) {

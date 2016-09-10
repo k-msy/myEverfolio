@@ -10,12 +10,16 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.enterprise.context.RequestScoped;
+import javax.inject.Named;
 
 /**
  * DB に保存するパスワードを SHA-256 の メッセージ・ダイジェストとして保存 プレイン・テキストとメッセージ・ダイジェストの変換ユーティリティ
  * 
 * @author Yoshio Terada
  */
+@Named
+@RequestScoped
 public class SHA256Encoder implements Serializable {
 
     private static final long serialVersionUID = 1L;

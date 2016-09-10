@@ -10,6 +10,7 @@ import entity.Users;
 import java.io.Serializable;
 import javax.ejb.EJB;
 import javax.enterprise.context.RequestScoped;
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.validation.constraints.NotNull;
 import util.SHA256Encoder;
@@ -27,6 +28,8 @@ public class RegisterBb extends SuperBb implements Serializable {
     private UserGroup group;
     @EJB
     RegisterDb db;
+    @Inject
+    SHA256Encoder encorder;
 
     /**
      * アカウント登録
@@ -34,7 +37,7 @@ public class RegisterBb extends SuperBb implements Serializable {
      */
     public String create() {
         group = new UserGroup(id, "user");
-        Users user = new Users(id, getEncodedPw(pw), name, group);
+        Users user = new Users(id, encorder.encodePassword(pw), name, group);
         Token_withings wi_token = new Token_withings(id, "", "", "", "", "", "", "");
         Token_zaim za_token = new Token_zaim(id, "", "", "", "", "", "");
         Token_todoist to_token = new Token_todoist(id, "", "", "", "");
@@ -55,16 +58,7 @@ public class RegisterBb extends SuperBb implements Serializable {
         id = (pw = name = null);
     }
 
-    /**
-     * pwをSHA256でエンコードして返却
-     * @param pw
-     * @return 
-     */
-    private String getEncodedPw(String pw) {
-        SHA256Encoder encoder = new SHA256Encoder();
-        return encoder.encodePassword(pw);
-    }
-
+    
     public String getId() {
         return id;
     }

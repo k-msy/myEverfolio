@@ -1,6 +1,5 @@
 package bean;
 
-import entity.TogglEnti;
 import java.util.ArrayList;
 import java.util.Date;
 import javax.enterprise.context.SessionScoped;
@@ -69,31 +68,40 @@ public class HeaderBb extends SuperBb {
 
     public void zaimCoop() {
         HttpServletRequest request = getRequest();
-        String zaim_coopEventExecute = request.getParameter("headerComp:zaim_coopEventExecute");
-        if ("true".equals(zaim_coopEventExecute)) {
-            zaimCoopFlg = zaim.changeCoop(zaimCoopFlg);
-        } else if ("false".equals(zaim_coopEventExecute)) {
-            zaimCoopFlg = zaim.cancelChangeCoop(zaimCoopFlg);
+        String eventExecute = request.getParameter("headerComp:zaim_coopEventExecute");
+        if (null != eventExecute) switch (eventExecute) {
+            case "true":
+                zaimCoopFlg = zaim.changeCoop(zaimCoopFlg);
+                break;
+            case "false":
+                zaimCoopFlg = zaim.cancelChangeCoop(zaimCoopFlg);
+                break;
         }
     }
 
     public void wiCoop() {
         HttpServletRequest request = getRequest();
-        String wi_coopEventExecute = request.getParameter("headerComp:wi_coopEventExecute");
-        if ("true".equals(wi_coopEventExecute)) {
-            wiCoopFlg = wi.changeCoop(wiCoopFlg);
-        } else if ("false".equals(wi_coopEventExecute)) {
-            wiCoopFlg = wi.cancelChangeCoop(wiCoopFlg);
+        String eventExecute = request.getParameter("headerComp:wi_coopEventExecute");
+        if (null != eventExecute) switch (eventExecute) {
+            case "true":
+                wiCoopFlg = wi.changeCoop(wiCoopFlg);
+                break;
+            case "false":
+                wiCoopFlg = wi.cancelChangeCoop(wiCoopFlg);
+                break;
         }
     }
 
     public void todoCoop() {
         HttpServletRequest request = getRequest();
-        String todo_coopEventExecute = request.getParameter("headerComp:todo_coopEventExecute");
-        if ("true".equals(todo_coopEventExecute)) {
-            todoCoopFlg = todo.changeCoop(todoCoopFlg);
-        } else if ("false".equals(todo_coopEventExecute)) {
-            todoCoopFlg = todo.cancelChangeCoop(todoCoopFlg);
+        String eventExecute = request.getParameter("headerComp:todo_coopEventExecute");
+        if (null != eventExecute) switch (eventExecute) {
+            case "true":
+                todoCoopFlg = todo.changeCoop(todoCoopFlg);
+                break;
+            case "false":
+                todoCoopFlg = todo.cancelChangeCoop(todoCoopFlg);
+                break;
         }
     }
 

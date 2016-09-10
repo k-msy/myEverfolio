@@ -56,7 +56,7 @@ public class Zaim extends SuperOauth {
     ZaimDb db;
 
     public Boolean doesCooperate(HttpSession session) {
-        boolean coop = true;
+        boolean coop;
         if (isExistAccessToken(session)) {
             this.headerBb.setZaimCoopFlg(true);
             coop = true;
@@ -91,10 +91,13 @@ public class Zaim extends SuperOauth {
             ArrayList<String[]> incomeList = new ArrayList();
             for (JsonNode moneyNode : moneyNodeList) {
                 String[] mode = moneyNode.get(ZA_MODE).toString().split("\"");
-                if (ZA_PAYMENT.equals(mode[1])) {
-                    paymentList = addTodayPaymentList(moneyNode, paymentList);
-                } else if (ZA_INCOME.equals(mode[1])) {
-                    incomeList = addTodayIncomeList(moneyNode, incomeList);
+                if (null != mode[1]) switch (mode[1]) {
+                    case ZA_PAYMENT:
+                        paymentList = addTodayPaymentList(moneyNode, paymentList);
+                        break;
+                    case ZA_INCOME:
+                        incomeList = addTodayIncomeList(moneyNode, incomeList);
+                        break;
                 }
             }
             this.zaEnti.setSumPayment(sumPayment(paymentList));
@@ -120,10 +123,13 @@ public class Zaim extends SuperOauth {
             ArrayList<ZaimObject> incomeList = new ArrayList();
             for (JsonNode moneyNode : moneyNodeList) {
                 String[] mode = moneyNode.get(ZA_MODE).toString().split("\"");
-                if (ZA_PAYMENT.equals(mode[1])) {
-                    paymentList = addRangeMoneyList(moneyNode, paymentList, ZA_PAYMENT);
-                } else if (ZA_INCOME.equals(mode[1])) {
-                    incomeList = addRangeMoneyList(moneyNode, incomeList, ZA_INCOME);
+                if (null != mode[1]) switch (mode[1]) {
+                    case ZA_PAYMENT:
+                        paymentList = addRangeMoneyList(moneyNode, paymentList, ZA_PAYMENT);
+                        break;
+                    case ZA_INCOME:
+                        incomeList = addRangeMoneyList(moneyNode, incomeList, ZA_INCOME);
+                        break;
                 }
             }
             injectZeroDayData(dayList, paymentList);
@@ -227,44 +233,45 @@ public class Zaim extends SuperOauth {
 
         String[] dateStr = moneyNode.get(ZA_DATE).toString().split("\"");
         String yyyy_mm_dd = dateStr[1];
-        if (type.equals(ZA_PAYMENT)) {
-            if (0 == moneyList.size()) {
-                obj.dateStr = yyyy_mm_dd.substring(5);
-                obj.utcDate = Long.valueOf(this.utiDate.convertStartUTC(yyyy_mm_dd));
-                obj.payment = moneyNode.get(ZA_AMOUNT).asInt();
-                moneyList.add(obj);
-            } else {
-                int index = getSameValueIndex(moneyList, yyyy_mm_dd.substring(5));
-                if (0 <= index) {
-                    ZaimObject tmp = (ZaimObject) moneyList.get(index);
-                    tmp.payment += moneyNode.get(ZA_AMOUNT).asInt();
-                    moneyList.set(index, tmp);
-                } else {
+        switch (type) {
+            case ZA_PAYMENT:
+                if (0 == moneyList.size()) {
                     obj.dateStr = yyyy_mm_dd.substring(5);
                     obj.utcDate = Long.valueOf(this.utiDate.convertStartUTC(yyyy_mm_dd));
                     obj.payment = moneyNode.get(ZA_AMOUNT).asInt();
                     moneyList.add(obj);
-                }
-            }
-        } else if (type.equals(ZA_INCOME)) {
-            if (0 == moneyList.size()) {
-                obj.dateStr = yyyy_mm_dd.substring(5);
-                obj.utcDate = Long.valueOf(this.utiDate.convertStartUTC(yyyy_mm_dd));
-                obj.income = moneyNode.get(ZA_AMOUNT).asInt();
-                moneyList.add(obj);
-            } else {
-                int index = getSameValueIndex(moneyList, yyyy_mm_dd.substring(5));
-                if (0 <= index) {
-                    ZaimObject tmp = (ZaimObject) moneyList.get(index);
-                    tmp.payment += moneyNode.get(ZA_AMOUNT).asInt();
-                    moneyList.set(index, tmp);
                 } else {
+                    int index = getSameValueIndex(moneyList, yyyy_mm_dd.substring(5));
+                    if (0 <= index) {
+                        ZaimObject tmp = (ZaimObject) moneyList.get(index);
+                        tmp.payment += moneyNode.get(ZA_AMOUNT).asInt();
+                        moneyList.set(index, tmp);
+                    } else {
+                        obj.dateStr = yyyy_mm_dd.substring(5);
+                        obj.utcDate = Long.valueOf(this.utiDate.convertStartUTC(yyyy_mm_dd));
+                        obj.payment = moneyNode.get(ZA_AMOUNT).asInt();
+                        moneyList.add(obj);
+                    }
+                }   break;
+            case ZA_INCOME:
+                if (0 == moneyList.size()) {
                     obj.dateStr = yyyy_mm_dd.substring(5);
                     obj.utcDate = Long.valueOf(this.utiDate.convertStartUTC(yyyy_mm_dd));
                     obj.income = moneyNode.get(ZA_AMOUNT).asInt();
                     moneyList.add(obj);
+                } else {
+                    int index = getSameValueIndex(moneyList, yyyy_mm_dd.substring(5));
+                    if (0 <= index) {
+                        ZaimObject tmp = (ZaimObject) moneyList.get(index);
+                        tmp.payment += moneyNode.get(ZA_AMOUNT).asInt();
+                        moneyList.set(index, tmp);
+                    } else {
+                        obj.dateStr = yyyy_mm_dd.substring(5);
+                        obj.utcDate = Long.valueOf(this.utiDate.convertStartUTC(yyyy_mm_dd));
+                        obj.income = moneyNode.get(ZA_AMOUNT).asInt();
+                        moneyList.add(obj);
                 }
-            }
+            }   break;
         }
         return moneyList;
     }
@@ -315,10 +322,7 @@ public class Zaim extends SuperOauth {
     }
 
     public boolean cancelChangeCoop(boolean zaimCoopFlg) {
-        if (zaimCoopFlg) {
-            return false;
-        }
-        return true;
+        return !zaimCoopFlg;
     }
 
     private int getSameValueIndex(ArrayList<ZaimObject> list, String mm_dd) {

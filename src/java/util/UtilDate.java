@@ -127,10 +127,7 @@ public class UtilDate {
         String todayStr = getTodayYyyyMmDd();
         String startStr = formatYyyyMmDd(start);
         String endStr = formatYyyyMmDd(end);
-        if ((todayStr.equals(startStr)) && (todayStr.equals(endStr))) {
-            return true;
-        }
-        return false;
+        return (todayStr.equals(startStr)) && (todayStr.equals(endStr));
     }
 
     public ArrayList<String> summarizeDayList(ArrayList<String> dayList) {
